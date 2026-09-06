@@ -1,0 +1,8 @@
+[functions.initiate-payment]
+verify_jwt = true
+
+[functions.refund-failed-levee]
+verify_jwt = false
+
+[functions.verify-kyc]
+verify_jwt = true

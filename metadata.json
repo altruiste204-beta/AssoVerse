@@ -1,0 +1,6 @@
+{
+  "name": "AssoMboa",
+  "description": "Gestion des associations, tontines, GIC et ONG au Cameroun",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
