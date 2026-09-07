@@ -5,7 +5,7 @@ import { useTheme } from '@/features/dashboard/theme-context'
 import { motion } from 'motion/react'
 import {
   Users, HandCoins, ShieldCheck, Heart, TrendingUp, Scale,
-  Globe, Sun, Moon, ArrowRight, Building2,
+  Globe, Sun, Moon, ArrowRight, Building2, BookOpen, Eye,
 } from 'lucide-react'
 
 export function LandingPage() {
@@ -42,7 +42,7 @@ export function LandingPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div className="fluorescent-logo" style={{
             width: '40px', height: '40px', borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, #14532D 0%, #F4C430 100%)',
+            background: 'var(--color-primary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: 700, color: '#FFFFFF',
           }}>A</div>
@@ -288,6 +288,60 @@ export function LandingPage() {
           <span style={{ fontSize: '13px', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Building2 size={14} /> AssoMboa
           </span>
+          <button
+            onClick={() => navigate('/cgu')}
+            style={{
+              fontSize: '13px',
+              color: 'var(--color-primary)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              textDecoration: 'underline',
+              fontWeight: 500,
+              padding: 0,
+            }}
+          >
+            <Scale size={14} /> Conditions Générales (CGU)
+          </button>
+          <button
+            onClick={() => navigate('/mentions-legales')}
+            style={{
+              fontSize: '13px',
+              color: 'var(--color-primary)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              textDecoration: 'underline',
+              fontWeight: 500,
+              padding: 0,
+            }}
+          >
+            <BookOpen size={14} /> Mentions Légales
+          </button>
+          <button
+            onClick={() => navigate('/politique-confidentialite')}
+            style={{
+              fontSize: '13px',
+              color: 'var(--color-primary)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              textDecoration: 'underline',
+              fontWeight: 500,
+              padding: 0,
+            }}
+          >
+            <Eye size={14} /> Politique de confidentialité
+          </button>
           <span style={{ fontSize: '13px', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Scale size={14} /> Loi n°2024/017
           </span>

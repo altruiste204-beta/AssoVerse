@@ -7,6 +7,7 @@ import { Button, Card, Input, Select, Modal, Badge, Spinner, EmptyState } from '
 import { supabase } from '@/lib/supabase'
 import { formatDateTime } from '@/lib/utils'
 import type { Meeting, MeetingPlatform } from '@/types/database'
+import { getEkangPatternSvg, getNdopPatternSvg } from '@/components/ui/CameroonPattern'
 import { Plus, Calendar, Video, Radio } from 'lucide-react'
 import { InAppMeetingLive } from './InAppMeetingLive'
 
@@ -81,7 +82,39 @@ export function MeetingsPage() {
 
   return (
     <AppLayout>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px', padding: '4px', borderRadius: 'var(--radius-lg)' }}>
+        {/* Subtle repeating background Ndop pattern */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: `url("${getNdopPatternSvg('var(--color-primary)')}")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '120px 120px',
+          opacity: 0.015,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+
+        {/* Subtle static, abstract decoration pattern */}
+        <div style={{
+          position: 'absolute',
+          top: '-30px',
+          right: '-30px',
+          width: '150px',
+          height: '150px',
+          opacity: 0.05,
+          pointerEvents: 'none',
+          backgroundImage: `url("${getEkangPatternSvg('var(--color-primary)')}")`,
+          backgroundSize: 'cover',
+          borderRadius: '50%',
+          border: '1.5px solid var(--color-primary)',
+          zIndex: 0,
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ fontSize: '22px', color: 'var(--color-text)' }}>{t('meetings.title')}</h1>
           {canCreate && (
@@ -139,6 +172,7 @@ export function MeetingsPage() {
             })}
           </div>
         )}
+        </div>
       </div>
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title={t('meetings.create')}>

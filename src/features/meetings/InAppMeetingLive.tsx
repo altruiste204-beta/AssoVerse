@@ -188,7 +188,7 @@ export function InAppMeetingLive({ meeting, onLeave }: InAppMeetingLiveProps) {
               <div style={{
                 width: '100%',
                 height: '100%',
-                background: 'linear-gradient(135deg, #2D1B4E 0%, #0F0F11 100%)',
+                background: '#16161a',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -248,7 +248,7 @@ export function InAppMeetingLive({ meeting, onLeave }: InAppMeetingLiveProps) {
               <div style={{
                 width: '100%',
                 height: '100%',
-                background: 'linear-gradient(135deg, #1C2D27 0%, #111B18 100%)',
+                background: '#101a16',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',

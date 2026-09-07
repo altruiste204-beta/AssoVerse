@@ -3,7 +3,6 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { TopBar } from '@/components/layout/TopBar'
 import { BottomNav } from '@/components/layout/BottomNav'
-import { getNdopPatternSvg } from '@/components/ui/CameroonPattern'
 import { OfflineIndicator } from '@/components/ui/OfflineIndicator'
 
 const InsideAppLayoutContext = createContext(false)

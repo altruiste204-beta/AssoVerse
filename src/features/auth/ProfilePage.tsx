@@ -6,9 +6,10 @@ import { useTheme } from '@/features/dashboard/theme-context'
 import { useUserWallet } from '@/features/wallet/user-wallet-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button, Card, Input, Badge, Select, Modal, Spinner } from '@/components/ui'
+import { getEkangPatternSvg } from '@/components/ui/CameroonPattern'
 import { formatXAF } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
-import { Mail, Phone, ShieldCheck, Sun, Moon, Globe, LogOut, Wallet, ArrowDownLeft, ArrowUpRight, RefreshCw, Trash2, Archive, UserX, Copy, Share2, ShieldAlert, Check, Upload, Database, Server } from 'lucide-react'
+import { Mail, Phone, ShieldCheck, Sun, Moon, Globe, LogOut, Wallet, ArrowDownLeft, ArrowUpRight, Trash2, Archive, UserX, Copy, Share2, ShieldAlert, Check, Upload, Scale, BookOpen, Eye } from 'lucide-react'
 
 export function ProfilePage() {
   const { t } = useTranslation()
@@ -42,31 +43,6 @@ export function ProfilePage() {
   const [kycSubmitting, setKycSubmitting] = useState(false)
   const [kycError, setKycError] = useState<string | null>(null)
   const [kycSuccess, setKycSuccess] = useState(false)
-
-  const [dbMode, setDbMode] = useState(localStorage.getItem('assomboa_db_mode') || 'demo')
-  const hasSupabaseConfig = Boolean(
-    import.meta.env.VITE_SUPABASE_URL &&
-    import.meta.env.VITE_SUPABASE_ANON_KEY &&
-    !import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-  )
-
-  const handleSetDbMode = (mode: 'demo' | 'clean') => {
-    localStorage.setItem('assomboa_db_mode', mode)
-    setDbMode(mode)
-    localStorage.removeItem('assomboa_mock_db')
-    localStorage.removeItem('assomboa_mock_auth')
-    localStorage.removeItem('assomboa_offline_associations')
-    window.location.reload()
-  }
-
-  const handleResetDb = () => {
-    if (confirm('Voulez-vous vraiment réinitialiser toutes les données locales ? Vos modifications seront perdues.')) {
-      localStorage.removeItem('assomboa_mock_db')
-      localStorage.removeItem('assomboa_mock_auth')
-      localStorage.removeItem('assomboa_offline_associations')
-      window.location.reload()
-    }
-  }
 
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text)
@@ -201,12 +177,42 @@ export function ProfilePage() {
 
   return (
     <AppLayout>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px', padding: '4px', borderRadius: 'var(--radius-lg)' }}>
+        {/* Subtle static, abstract decoration pattern */}
+        <div style={{
+          position: 'absolute',
+          top: '-30px',
+          right: '-30px',
+          width: '150px',
+          height: '150px',
+          opacity: 0.05,
+          pointerEvents: 'none',
+          backgroundImage: `url("${getEkangPatternSvg('var(--color-primary)')}")`,
+          backgroundSize: 'cover',
+          borderRadius: '50%',
+          border: '1.5px solid var(--color-primary)',
+          zIndex: 0,
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <h1 style={{ fontSize: '22px', color: 'var(--color-text)' }}>{t('nav.profile')}</h1>
 
         <Card style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-          {/* Real profile photo uploader with hover overlay */}
-          <div style={{ position: 'relative', width: '96px', height: '96px', margin: '0 auto' }}>
+          {/* Real profile photo uploader: click anywhere on the avatar to change it */}
+          <label 
+            style={{ 
+              position: 'relative', 
+              width: '96px', 
+              height: '96px', 
+              margin: '0 auto', 
+              display: 'block', 
+              cursor: 'pointer',
+              transition: 'transform 150ms ease',
+            }} 
+            title="Changer de photo de profil"
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
+          >
             {avatarUrl ? (
               <img 
                 src={avatarUrl} 
@@ -219,7 +225,7 @@ export function ProfilePage() {
                 width: '96px',
                 height: '96px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+                background: 'var(--color-primary)',
                 color: '#FFFFFF',
                 display: 'flex',
                 alignItems: 'center',
@@ -232,32 +238,13 @@ export function ProfilePage() {
                 {profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U'}
               </div>
             )}
-            <label style={{
-              position: 'absolute',
-              bottom: '2px',
-              right: '2px',
-              width: '30px',
-              height: '30px',
-              borderRadius: '50%',
-              background: 'var(--color-primary)',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              boxShadow: 'var(--shadow-sm)',
-              border: '2px solid var(--color-card)',
-              transition: 'transform 150ms ease',
-            }} title="Changer de photo de profil">
-              <Upload size={14} />
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handlePhotoUpload} 
-                style={{ display: 'none' }} 
-              />
-            </label>
-          </div>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={handlePhotoUpload} 
+              style={{ display: 'none' }} 
+            />
+          </label>
 
           <div>
             <h2 style={{ fontSize: '18px', color: 'var(--color-text)', fontWeight: 700 }}>{profile?.full_name}</h2>
@@ -297,7 +284,7 @@ export function ProfilePage() {
         {/* Mon Portefeuille Indicatif */}
         <Card
           style={{
-            background: 'linear-gradient(135deg, rgba(200, 150, 62, 0.12) 0%, rgba(200, 150, 62, 0.04) 100%)',
+            background: 'rgba(200, 150, 62, 0.06)',
             border: '1px solid rgba(200, 150, 62, 0.35)',
           }}
         >
@@ -344,7 +331,7 @@ export function ProfilePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <Input id="profile-name-input" label={t('auth.fullName')} value={fullName} onChange={setFullName} aria-label="Nom complet de l'utilisateur" />
             <Input id="profile-phone-input" label={t('auth.phone')} value={phone} onChange={setPhone} aria-label="Téléphone de l'utilisateur" />
-            <Select id="profile-lang-select" label={t('nav.profile')} value={i18n.language} onChange={(v) => i18n.changeLanguage(v)} options={[
+            <Select id="profile-lang-select" label="Langue d'affichage" value={i18n.language} onChange={(v) => i18n.changeLanguage(v)} options={[
               { value: 'fr', label: 'Français' },
               { value: 'en', label: 'English' },
             ]} aria-label="Langue de l'application" />
@@ -543,108 +530,45 @@ export function ProfilePage() {
               <Globe size={18} />
               {i18n.language === 'fr' ? 'English' : 'Français'}
             </button>
+
+            <button onClick={() => navigate('/cgu')} style={{
+              display: 'flex', alignItems: 'center', gap: '12px', padding: '12px',
+              background: 'var(--color-sand)', borderRadius: 'var(--radius-md)', border: 'none',
+              cursor: 'pointer', color: 'var(--color-text)', fontSize: '14px', width: '100%',
+              marginTop: '4px'
+            }} aria-label="Consulter les Conditions Générales d'Utilisation">
+              <Scale size={18} color="var(--color-primary)" />
+              Conditions Générales (CGU)
+            </button>
+
+            <button onClick={() => navigate('/mentions-legales')} style={{
+              display: 'flex', alignItems: 'center', gap: '12px', padding: '12px',
+              background: 'var(--color-sand)', borderRadius: 'var(--radius-md)', border: 'none',
+              cursor: 'pointer', color: 'var(--color-text)', fontSize: '14px', width: '100%',
+              marginTop: '4px'
+            }} aria-label="Consulter les Mentions Légales">
+              <BookOpen size={18} color="var(--color-primary)" />
+              Mentions Légales
+            </button>
+
+            <button onClick={() => navigate('/politique-confidentialite')} style={{
+              display: 'flex', alignItems: 'center', gap: '12px', padding: '12px',
+              background: 'var(--color-sand)', borderRadius: 'var(--radius-md)', border: 'none',
+              cursor: 'pointer', color: 'var(--color-text)', fontSize: '14px', width: '100%',
+              marginTop: '4px'
+            }} aria-label="Consulter la Politique de confidentialité">
+              <Eye size={18} color="var(--color-primary)" />
+              Politique de confidentialité
+            </button>
           </div>
         </Card>
 
-        {/* Database & Connection Management */}
-        <Card>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Database size={20} color="var(--color-primary)" />
-              <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text)' }}>
-                Configuration Base de Données
-              </span>
-            </div>
 
-            {hasSupabaseConfig ? (
-              <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--color-success)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Server size={16} color="var(--color-success)" />
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-success)' }}>
-                    Connecté au Cloud (Production)
-                  </span>
-                </div>
-                <p style={{ fontSize: '12px', color: 'var(--color-text)', margin: 0, lineHeight: 1.4 }}>
-                  L'application utilise votre base de données réelle Supabase. Toutes les données sont enregistrées en direct de manière hautement sécurisée.
-                </p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ padding: '12px', background: 'rgba(217, 119, 6, 0.1)', border: '1px solid var(--color-warning)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ShieldAlert size={16} color="var(--color-warning)" />
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-warning)' }}>
-                      Base de données locale (Simulée)
-                    </span>
-                  </div>
-                  <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.4 }}>
-                    Aucune clé Supabase n'est configurée dans AI Studio. Les données sont sauvegardées localement dans votre navigateur.
-                  </p>
-                </div>
-
-                {/* DB Mode selection */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
-                    Sélectionner le mode local :
-                  </span>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                    <button
-                      onClick={() => handleSetDbMode('demo')}
-                      style={{
-                        padding: '10px 8px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid',
-                        borderColor: dbMode !== 'clean' ? 'var(--color-primary)' : 'var(--color-border)',
-                        background: dbMode !== 'clean' ? 'var(--color-primary-light)' : 'var(--color-sand)',
-                        color: dbMode !== 'clean' ? 'var(--color-primary)' : 'var(--color-text)',
-                        fontSize: '13px',
-                        fontWeight: dbMode !== 'clean' ? 600 : 500,
-                        cursor: 'pointer',
-                        transition: 'all 200ms ease',
-                      }}
-                    >
-                      Mode Démo (Rempli)
-                    </button>
-                    <button
-                      onClick={() => handleSetDbMode('clean')}
-                      style={{
-                        padding: '10px 8px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid',
-                        borderColor: dbMode === 'clean' ? 'var(--color-primary)' : 'var(--color-border)',
-                        background: dbMode === 'clean' ? 'var(--color-primary-light)' : 'var(--color-sand)',
-                        color: dbMode === 'clean' ? 'var(--color-primary)' : 'var(--color-text)',
-                        fontSize: '13px',
-                        fontWeight: dbMode === 'clean' ? 600 : 500,
-                        cursor: 'pointer',
-                        transition: 'all 200ms ease',
-                      }}
-                    >
-                      Mode Réel (Vide)
-                    </button>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid var(--color-border)', paddingTop: '12px', marginTop: '4px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-                    💡 <strong>Mode Réel :</strong> Démarre l'application vide sur l'écran d'inscription. Créez votre propre profil et vos tontines de zéro, sans données démo fictives.
-                  </span>
-                  <Button
-                    variant="outline"
-                    onClick={handleResetDb}
-                    style={{ fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '6px' }}
-                  >
-                    <RefreshCw size={14} /> Réinitialiser la Base de Données
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
 
         <Button variant="danger" fullWidth onClick={handleLogout} aria-label="Se déconnecter de l'application">
           <LogOut size={16} /> {t('auth.logout')}
         </Button>
+        </div>
       </div>
 
       {/* KYC Verification Wizard Modal */}

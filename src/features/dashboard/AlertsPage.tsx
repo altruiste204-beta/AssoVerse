@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAssociation } from '@/features/associations/association-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Card, Badge, Spinner, EmptyState } from '@/components/ui'
+import { getEkangPatternSvg, getNdopPatternSvg } from '@/components/ui/CameroonPattern'
 import { supabase } from '@/lib/supabase'
 import { formatXAF, formatDate, daysUntil } from '@/lib/utils'
 import { Bell, ShieldCheck, HandCoins, Heart, Calendar } from 'lucide-react'
@@ -90,7 +91,24 @@ export function AlertsPage() {
 
   return (
     <AppLayout>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px', padding: '4px', borderRadius: 'var(--radius-lg)' }}>
+        {/* Subtle static, abstract decoration pattern */}
+        <div style={{
+          position: 'absolute',
+          top: '-30px',
+          right: '-30px',
+          width: '150px',
+          height: '150px',
+          opacity: 0.05,
+          pointerEvents: 'none',
+          backgroundImage: `url("${getEkangPatternSvg('var(--color-primary)')}")`,
+          backgroundSize: 'cover',
+          borderRadius: '50%',
+          border: '1.5px solid var(--color-primary)',
+          zIndex: 0,
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <h1 style={{ fontSize: '22px', color: 'var(--color-text)' }}>{t('nav.alerts')}</h1>
 
         {loading ? (
@@ -117,6 +135,7 @@ export function AlertsPage() {
             ))}
           </div>
         )}
+        </div>
       </div>
     </AppLayout>
   )

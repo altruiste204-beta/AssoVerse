@@ -66,7 +66,7 @@ export function BottomNav() {
                 width: item.center ? '52px' : '40px',
                 height: item.center ? '52px' : '40px',
                 borderRadius: item.center ? '50%' : 'var(--radius-md)',
-                background: item.center ? 'linear-gradient(135deg, #14532D 0%, #F4C430 100%)' : active ? 'var(--color-primary-light)' : 'transparent',
+                background: item.center ? 'var(--color-primary)' : active ? 'var(--color-primary-light)' : 'transparent',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

@@ -7,6 +7,7 @@ import { useAssociation } from '@/features/associations/association-context'
 import { useUserWallet } from '@/features/wallet/user-wallet-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button, Card, Input, Select, Modal, Badge, ProgressBar, Spinner, EmptyState } from '@/components/ui'
+import { getEkangPatternSvg, getNdopPatternSvg } from '@/components/ui/CameroonPattern'
 import { supabase } from '@/lib/supabase'
 import { formatXAF, getProgressPercentage, daysUntil } from '@/lib/utils'
 import type { MainLevee, TontineRound, TontineContribution } from '@/types/database'
@@ -355,7 +356,39 @@ export function TontinesPage() {
 
   return (
     <AppLayout>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px', padding: '4px', borderRadius: 'var(--radius-lg)' }}>
+        {/* Subtle repeating background Ndop pattern */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: `url("${getNdopPatternSvg('var(--color-primary)')}")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '120px 120px',
+          opacity: 0.015,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+
+        {/* Subtle static, abstract decoration pattern */}
+        <div style={{
+          position: 'absolute',
+          top: '-30px',
+          right: '-30px',
+          width: '150px',
+          height: '150px',
+          opacity: 0.05,
+          pointerEvents: 'none',
+          backgroundImage: `url("${getEkangPatternSvg('var(--color-primary)')}")`,
+          backgroundSize: 'cover',
+          borderRadius: '50%',
+          border: '1.5px solid var(--color-primary)',
+          zIndex: 0,
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Top Header & Context */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
           <div>
@@ -378,7 +411,7 @@ export function TontinesPage() {
               alignItems: 'center',
               gap: '10px',
               padding: '8px 14px',
-              background: 'linear-gradient(135deg, var(--color-sand) 0%, rgba(255, 115, 0, 0.12) 100%)',
+              background: 'var(--color-sand)',
               borderRadius: 'var(--radius-lg)',
               border: '1px solid rgba(255, 115, 0, 0.25)',
               cursor: 'pointer',
@@ -493,7 +526,7 @@ export function TontinesPage() {
                   <Card
                     style={{
                       border: '1px solid rgba(200, 150, 62, 0.4)',
-                      background: 'radial-gradient(ellipse at top right, rgba(200, 150, 62, 0.08) 0%, var(--color-card) 70%)',
+                      background: 'var(--color-card)',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -724,7 +757,7 @@ export function TontinesPage() {
                   style={{
                     padding: '16px 20px',
                     borderRadius: 'var(--radius-lg)',
-                    background: 'linear-gradient(135deg, rgba(200,150,62,0.12) 0%, rgba(200,150,62,0.03) 100%)',
+                    background: 'rgba(200, 150, 62, 0.05)',
                     border: '1px solid rgba(200,150,62,0.25)',
                     display: 'flex',
                     alignItems: 'center',
@@ -1195,6 +1228,7 @@ export function TontinesPage() {
             </div>
           </Modal>
         )}
+        </div>
       </div>
     </AppLayout>
   )

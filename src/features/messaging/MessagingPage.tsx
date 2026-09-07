@@ -4,6 +4,7 @@ import { useAuth } from '@/features/auth/auth-context'
 import { useAssociation } from '@/features/associations/association-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Spinner, EmptyState } from '@/components/ui'
+import { getEkangPatternSvg } from '@/components/ui/CameroonPattern'
 import { supabase } from '@/lib/supabase'
 import { timeAgo } from '@/lib/utils'
 import type { Message, Conversation, Profile } from '@/types/database'
@@ -119,7 +120,24 @@ export function MessagingPage() {
 
   return (
     <AppLayout>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '16px', padding: '4px', borderRadius: 'var(--radius-lg)' }}>
+        {/* Subtle static, abstract decoration pattern */}
+        <div style={{
+          position: 'absolute',
+          top: '-30px',
+          right: '-30px',
+          width: '150px',
+          height: '150px',
+          opacity: 0.05,
+          pointerEvents: 'none',
+          backgroundImage: `url("${getEkangPatternSvg('var(--color-primary)')}")`,
+          backgroundSize: 'cover',
+          borderRadius: '50%',
+          border: '1.5px solid var(--color-primary)',
+          zIndex: 0,
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <h1 style={{ fontSize: '22px', color: 'var(--color-text)' }}>{currentAssociation.name}</h1>
 
         {loading ? (
@@ -179,6 +197,7 @@ export function MessagingPage() {
           }}>
             <Send size={18} />
           </button>
+        </div>
         </div>
       </div>
     </AppLayout>

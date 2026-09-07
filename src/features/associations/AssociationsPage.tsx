@@ -8,9 +8,66 @@ import { Button, Card, Input, Select, Modal, Badge, Spinner, EmptyState } from '
 import { supabase } from '@/lib/supabase'
 import { generateJoinCode } from '@/lib/utils'
 import type { Association } from '@/types/database'
-import { Plus, Users, MapPin, Building2, UserPlus, FolderPlus, HelpCircle } from 'lucide-react'
+import { getEkangPatternSvg, getNdopPatternSvg } from '@/components/ui/CameroonPattern'
+import { Plus, Users, MapPin, Building2, UserPlus, FolderPlus, HelpCircle, ShieldAlert } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Joyride } from 'react-joyride'
+import * as JoyrideModule from 'react-joyride'
+
+const TourStyles = () => (
+  <style>{`
+    @keyframes tourPing {
+      0% { transform: scale(1); opacity: 1; }
+      70%, 100% { transform: scale(2); opacity: 0; }
+    }
+    @keyframes tourPulse {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.25); opacity: 0.4; }
+    }
+    @keyframes tourBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+  `}</style>
+)
+
+const CustomBeacon = () => {
+  return (
+    <>
+      <TourStyles />
+      <div style={{
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        width: '44px',
+        height: '44px',
+      }}>
+        {/* Accent yellow ripple */}
+        <span style={{
+          position: 'absolute',
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          backgroundColor: 'rgba(244, 196, 48, 0.45)',
+          animation: 'tourPing 1.5s cubic-bezier(0, 0, 0.2, 1) infinite',
+        }} />
+
+        {/* Primary green concentric pulse */}
+        <span style={{
+          position: 'absolute',
+          width: '28px',
+          height: '28px',
+          borderRadius: '50%',
+          backgroundColor: 'rgba(20, 83, 45, 0.2)',
+          border: '2px solid var(--color-primary, #14532D)',
+          animation: 'tourPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        }} />
+      </div>
+    </>
+  )
+}
 
 function formatAssociationCode(raw: string): string {
   let clean = raw.toUpperCase().replace(/[^A-Z0-9]/g, '')
@@ -50,10 +107,11 @@ export function AssociationsPage() {
   const [fabOpen, setFabOpen] = useState(false)
 
   // Cast Joyride as any to prevent strict compiler errors with props/types
-  const JoyrideComponent = Joyride as any
+  const JoyrideComponent = ((JoyrideModule as any).default || (JoyrideModule as any).Joyride || JoyrideModule) as any
 
   // Guided Tour (Onboarding) State
   const [runTour, setRunTour] = useState(false)
+  const [tourKey, setTourKey] = useState(0)
 
   useEffect(() => {
     const tourCompleted = localStorage.getItem('assomboa_onboarding_completed')
@@ -92,7 +150,14 @@ export function AssociationsPage() {
   ]
 
   const handleJoyrideCallback = (data: any) => {
-    const { index, type, status } = data
+    const { index, type, status, action } = data
+    
+    // Core Fix: Pre-emptively trigger FAB menu expansion as soon as step 2 is successfully completed.
+    // This allows the DOM elements to be fully mounted in React before Joyride attempts to measure them for step 3.
+    if (type === 'step:after' && index === 2 && action === 'next') {
+      setFabOpen(true)
+    }
+
     if (type === 'step:before' && index >= 3) {
       setFabOpen(true)
     }
@@ -199,10 +264,12 @@ export function AssociationsPage() {
   return (
     <AppLayout>
       <JoyrideComponent
+        key={tourKey}
         steps={tourSteps}
         run={runTour}
         continuous
         showSkipButton
+        beaconComponent={CustomBeacon}
         callback={handleJoyrideCallback}
         locale={{
           back: 'Retour',
@@ -221,7 +288,7 @@ export function AssociationsPage() {
             zIndex: 10001,
           },
           buttonNext: {
-            background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+            background: 'var(--color-primary)',
             color: '#FFFFFF',
             borderRadius: '9999px',
             fontWeight: 600,
@@ -240,13 +307,46 @@ export function AssociationsPage() {
           }
         } as any}
       />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px', padding: '4px', borderRadius: 'var(--radius-lg)' }}>
+        {/* Subtle repeating background Ndop pattern */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: `url("${getNdopPatternSvg('var(--color-primary)')}")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '120px 120px',
+          opacity: 0.015,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+
+        {/* Subtle static, abstract decoration pattern */}
+        <div style={{
+          position: 'absolute',
+          top: '-30px',
+          right: '-30px',
+          width: '150px',
+          height: '150px',
+          opacity: 0.05,
+          pointerEvents: 'none',
+          backgroundImage: `url("${getEkangPatternSvg('var(--color-primary)')}")`,
+          backgroundSize: 'cover',
+          borderRadius: '50%',
+          border: '1.5px solid var(--color-primary)',
+          zIndex: 0,
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 id="assoc-page-title" style={{ fontSize: '22px', color: 'var(--color-text)' }}>{t('assoc.myAssociations')}</h1>
           <button
             id="restart-tour-button"
             onClick={() => {
               setFabOpen(false)
+              setTourKey((prev) => prev + 1)
               setRunTour(true)
             }}
             style={{
@@ -271,8 +371,31 @@ export function AssociationsPage() {
         </div>
 
         {!kycVerified && (
-          <Card style={{ border: '1px solid var(--color-warning)', background: 'var(--color-warning)' }}>
-            <p style={{ color: '#FFFFFF', fontSize: '13px' }}>{t('kyc.subtitle')}</p>
+          <Card style={{
+            border: '1px solid rgba(217, 119, 6, 0.2)',
+            background: 'rgba(217, 119, 6, 0.05)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px 16px',
+            borderRadius: '12px',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              background: 'rgba(217, 119, 6, 0.1)',
+              color: '#B45309',
+              flexShrink: 0,
+            }}>
+              <ShieldAlert size={16} />
+            </div>
+            <p style={{ color: '#92400E', fontSize: '13px', fontWeight: 500, margin: 0, lineHeight: '1.5', textAlign: 'left' }}>
+              {t('kyc.subtitle')}
+            </p>
           </Card>
         )}
 
@@ -288,6 +411,7 @@ export function AssociationsPage() {
               ))}
             </div>
           )}
+        </div>
         </div>
       </div>
 
@@ -351,8 +475,8 @@ export function AssociationsPage() {
                       color: 'white',
                       fontWeight: 600,
                       fontSize: '14px',
-                      border: '2px solid transparent',
-                      backgroundImage: 'linear-gradient(rgba(30, 15, 14, 0.8), rgba(30, 15, 14, 0.8)), linear-gradient(135deg, var(--color-accent), var(--color-primary))',
+                      backgroundImage: 'linear-gradient(rgba(30, 15, 14, 0.8), rgba(30, 15, 14, 0.8))',
+                      border: '2px solid var(--color-primary)',
                       backgroundClip: 'padding-box, border-box',
                       backgroundOrigin: 'border-box',
                       boxShadow: 'var(--shadow-lg)',
@@ -390,8 +514,8 @@ export function AssociationsPage() {
                       color: 'white',
                       fontWeight: 600,
                       fontSize: '14px',
-                      border: '2px solid transparent',
-                      backgroundImage: 'linear-gradient(rgba(30, 15, 14, 0.8), rgba(30, 15, 14, 0.8)), linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+                      backgroundImage: 'linear-gradient(rgba(30, 15, 14, 0.8), rgba(30, 15, 14, 0.8))',
+                      border: '2px solid var(--color-primary)',
                       backgroundClip: 'padding-box, border-box',
                       backgroundOrigin: 'border-box',
                       boxShadow: 'var(--shadow-lg)',
@@ -420,7 +544,7 @@ export function AssociationsPage() {
                 width: '56px',
                 height: '56px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+                background: 'var(--color-primary)',
                 color: 'white',
                 display: 'flex',
                 alignItems: 'center',

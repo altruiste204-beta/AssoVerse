@@ -68,7 +68,7 @@ export function TopBar() {
             width: '36px',
             height: '36px',
             borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, #14532D 0%, #F4C430 100%)',
+            background: 'var(--color-primary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -56,18 +56,15 @@ export function generateCameroonAvatar(seed: string): string {
   const crownDetail = Math.abs(hash + 3) % 2 === 0
 
   // 1. Backgrounds
-  let bgGradient = 'linear-gradient(135deg, #14532D 0%, #0C331B 100%)'
   let bgFill = '#14532D'
   let bgAccent = 'rgba(255, 115, 0, 0.25)'
   let themeName = 'Bordeaux Royal'
 
   if (bgType === 1) {
-    bgGradient = 'linear-gradient(135deg, #D97706 0%, #1E1B4B 100%)'
     bgFill = '#D97706'
     bgAccent = 'rgba(143, 1, 0, 0.3)'
     themeName = 'Sahel Doré'
   } else if (bgType === 2) {
-    bgGradient = 'linear-gradient(135deg, #1E3A8A 0%, #0F172A 100%)'
     bgFill = '#1E3A8A'
     bgAccent = 'rgba(255, 115, 0, 0.3)'
     themeName = 'Ndop Grassfields'
@@ -209,10 +206,6 @@ export function generateCameroonAvatar(seed: string): string {
       <clipPath id="avatarClip">
         <circle cx="100" cy="100" r="96" />
       </clipPath>
-      <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="${bgFill}" />
-        <stop offset="100%" stop-color="#120000" />
-      </linearGradient>
     </defs>
     
     <!-- Outer delicate border -->
@@ -222,10 +215,7 @@ export function generateCameroonAvatar(seed: string): string {
     <!-- Cliped visual area -->
     <g clip-path="url(#avatarClip)">
       <!-- Background Fill -->
-      <rect x="0" y="0" width="200" height="200" fill="url(#bgGrad)" />
-      
-      <!-- Colored abstract gradient accent -->
-      <circle cx="100" cy="180" r="80" fill="${bgAccent}" filter="blur(20px)" />
+      <rect x="0" y="0" width="200" height="200" fill="${bgFill}" />
       
       ${ndopOverlay}
       

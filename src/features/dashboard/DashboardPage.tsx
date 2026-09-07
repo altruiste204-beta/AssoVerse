@@ -7,6 +7,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { Card, Select, ProgressBar, Spinner, EmptyState, Badge } from '@/components/ui'
 import { formatXAF, formatDate, getProgressPercentage } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
+import { getEkangPatternSvg, getNdopPatternSvg } from '@/components/ui/CameroonPattern'
 import {
   Users,
   TrendingUp,
@@ -58,8 +59,40 @@ export function DashboardPage() {
 
   return (
     <AppLayout>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div>
+      <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px', padding: '4px', borderRadius: 'var(--radius-lg)' }}>
+        {/* Subtle repeating background Ndop pattern */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: `url("${getNdopPatternSvg('var(--color-primary)')}")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '120px 120px',
+          opacity: 0.015,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+
+        {/* Subtle spinning circular Ekang pattern decoration */}
+        <div style={{
+          position: 'absolute',
+          top: '-30px',
+          right: '-30px',
+          width: '150px',
+          height: '150px',
+          opacity: 0.08,
+          pointerEvents: 'none',
+          backgroundImage: `url("${getEkangPatternSvg('var(--color-primary)')}")`,
+          backgroundSize: 'cover',
+          borderRadius: '50%',
+          border: '1.5px dashed var(--color-primary)',
+          animation: 'spin 30s linear infinite',
+          zIndex: 0,
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
           <h1 style={{ fontSize: '24px', fontWeight: 700, fontFamily: 'var(--font-heading)', color: 'var(--color-text)', marginBottom: '8px' }}>
             {t('dashboard.welcome', { name: profile?.full_name?.split(' ')[0] || '' })}
           </h1>

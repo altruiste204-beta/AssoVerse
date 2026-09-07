@@ -28,6 +28,9 @@ const BureauPage = lazy(() => import('@/features/bureau/BureauPage').then(m => (
 const CassationPage = lazy(() => import('@/features/cassation/CassationPage').then(m => ({ default: m.CassationPage })))
 const MeetingsPage = lazy(() => import('@/features/meetings/MeetingsPage').then(m => ({ default: m.MeetingsPage })))
 const MessagingPage = lazy(() => import('@/features/messaging/MessagingPage').then(m => ({ default: m.MessagingPage })))
+const CguPage = lazy(() => import('@/features/legal/CguPage').then(m => ({ default: m.CguPage })))
+const MentionsLegalesPage = lazy(() => import('@/features/legal/MentionsLegalesPage').then(m => ({ default: m.MentionsLegalesPage })))
+const PolitiqueConfidentialitePage = lazy(() => import('@/features/legal/PolitiqueConfidentialitePage').then(m => ({ default: m.PolitiqueConfidentialitePage })))
 
 function RouteFallback() {
   return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}><Spinner size={32} /></div>
@@ -52,6 +55,9 @@ function AppRoutes() {
         <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <PageTransition><AuthPage mode="login" /></PageTransition>} />
         <Route path="/signup" element={user ? <Navigate to="/dashboard" replace /> : <PageTransition><AuthPage mode="signup" /></PageTransition>} />
         <Route path="/kyc" element={<ProtectedRoute><PageTransition><KycPage /></PageTransition></ProtectedRoute>} />
+        <Route path="/cgu" element={<PageTransition><CguPage /></PageTransition>} />
+        <Route path="/mentions-legales" element={<PageTransition><MentionsLegalesPage /></PageTransition>} />
+        <Route path="/politique-confidentialite" element={<PageTransition><PolitiqueConfidentialitePage /></PageTransition>} />
 
         {/* Authenticated routes with persistent AppLayout and smooth section transitions */}
         <Route
@@ -87,7 +93,7 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <UserWalletProvider>
-          {/* Global authentic Cameroonian Ndop pattern overlay. Covers all pages (including dashboard, login, profile, and others) and remains completely immobile. */}
+          {/* Static, abstract background pattern overlays */}
           <div style={{
             position: 'fixed',
             top: 0,
@@ -97,25 +103,23 @@ export default function App() {
             backgroundImage: `url("${getNdopPatternSvg()}")`,
             backgroundRepeat: 'repeat',
             backgroundAttachment: 'fixed',
-            opacity: 0.16,
+            opacity: 0.12,
             pointerEvents: 'none',
             zIndex: 0,
           }} />
 
-          {/* Fixed gently-spinning traditional Cameroonian geometric design motifs (immobile on scroll, active on all pages) */}
+          {/* Fixed static, abstract geometric design motifs (immobile on scroll, quiet background only) */}
           <div style={{
             position: 'fixed',
             top: '12%',
             right: '-100px',
             width: '320px',
             height: '320px',
-            opacity: 0.08,
+            opacity: 0.05,
             pointerEvents: 'none',
             backgroundImage: `url("${getEkangPatternSvg('#F4C430')}")`,
             backgroundSize: 'cover',
             borderRadius: '50%',
-            border: '2px dashed var(--color-accent)',
-            animation: 'spin 40s linear infinite',
             zIndex: 0,
           }} />
 
@@ -125,13 +129,11 @@ export default function App() {
             left: '-120px',
             width: '280px',
             height: '280px',
-            opacity: 0.06,
+            opacity: 0.04,
             pointerEvents: 'none',
             backgroundImage: `url("${getNdopPatternSvg('#14532D')}")`,
             backgroundSize: 'cover',
             borderRadius: '50%',
-            border: '2px dashed var(--color-primary)',
-            animation: 'spin 50s linear reverse infinite',
             zIndex: 0,
           }} />
           <BrowserRouter>

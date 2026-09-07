@@ -94,7 +94,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
             width: '72px',
             height: '72px',
             borderRadius: 'var(--radius-lg)',
-            background: 'linear-gradient(135deg, #14532D 0%, #F4C430 100%)',
+            background: 'var(--color-primary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -166,6 +166,28 @@ export function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
           <Button type="submit" fullWidth size="lg" loading={loading}>
             {isSignup ? t('auth.signup') : t('auth.login')}
           </Button>
+
+          {isSignup && (
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', textAlign: 'center', marginTop: '-4px', lineHeight: 1.4 }}>
+              En vous inscrivant, vous acceptez pleinement les{' '}
+              <button
+                type="button"
+                onClick={() => navigate('/cgu')}
+                style={{ background: 'none', border: 'none', padding: 0, color: 'var(--color-primary)', textDecoration: 'underline', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}
+              >
+                Conditions Générales (CGU)
+              </button>{' '}
+              et la{' '}
+              <button
+                type="button"
+                onClick={() => navigate('/politique-confidentialite')}
+                style={{ background: 'none', border: 'none', padding: 0, color: 'var(--color-primary)', textDecoration: 'underline', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}
+              >
+                Politique de confidentialité
+              </button>{' '}
+              d'AssoMboa.
+            </p>
+          )}
         </form>
 
         <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '14px' }}>
