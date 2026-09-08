@@ -40,12 +40,16 @@ export function LandingPage() {
         maxWidth: '100%',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div className="fluorescent-logo" style={{
-            width: '40px', height: '40px', borderRadius: 'var(--radius-md)',
-            background: 'var(--color-primary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: 700, color: '#FFFFFF',
-          }}>A</div>
+          <img 
+            src="/logo.svg" 
+            alt="AssoMboa Logo" 
+            style={{ 
+              width: '40px', 
+              height: '40px', 
+              objectFit: 'contain'
+            }}
+            referrerPolicy="no-referrer"
+          />
           <span style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: 700, color: 'var(--color-text)' }}>
             AssoMboa
           </span>

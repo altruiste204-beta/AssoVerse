@@ -4,7 +4,7 @@ import { useAuth } from '@/features/auth/auth-context'
 import { useAssociation } from '@/features/associations/association-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Spinner, EmptyState } from '@/components/ui'
-import { getEkangPatternSvg } from '@/components/ui/CameroonPattern'
+import { getEkangPatternSvg, getNdopPatternSvg } from '@/components/ui/CameroonPattern'
 import { supabase } from '@/lib/supabase'
 import { timeAgo } from '@/lib/utils'
 import type { Message, Conversation, Profile } from '@/types/database'
@@ -121,6 +121,21 @@ export function MessagingPage() {
   return (
     <AppLayout>
       <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '16px', padding: '4px', borderRadius: 'var(--radius-lg)' }}>
+        {/* Subtle repeating background Ndop pattern */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: `url("${getNdopPatternSvg('var(--color-primary)')}")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '120px 120px',
+          opacity: 0.015,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+
         {/* Subtle static, abstract decoration pattern */}
         <div style={{
           position: 'absolute',
@@ -134,6 +149,7 @@ export function MessagingPage() {
           backgroundSize: 'cover',
           borderRadius: '50%',
           border: '1.5px solid var(--color-primary)',
+          animation: 'spin 30s linear infinite',
           zIndex: 0,
         }} />
 

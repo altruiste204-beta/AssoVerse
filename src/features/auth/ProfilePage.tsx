@@ -6,7 +6,7 @@ import { useTheme } from '@/features/dashboard/theme-context'
 import { useUserWallet } from '@/features/wallet/user-wallet-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button, Card, Input, Badge, Select, Modal, Spinner } from '@/components/ui'
-import { getEkangPatternSvg } from '@/components/ui/CameroonPattern'
+import { getEkangPatternSvg, getNdopPatternSvg } from '@/components/ui/CameroonPattern'
 import { formatXAF } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { Mail, Phone, ShieldCheck, Sun, Moon, Globe, LogOut, Wallet, ArrowDownLeft, ArrowUpRight, Trash2, Archive, UserX, Copy, Share2, ShieldAlert, Check, Upload, Scale, BookOpen, Eye } from 'lucide-react'
@@ -178,6 +178,21 @@ export function ProfilePage() {
   return (
     <AppLayout>
       <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px', padding: '4px', borderRadius: 'var(--radius-lg)' }}>
+        {/* Subtle repeating background Ndop pattern */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: `url("${getNdopPatternSvg('var(--color-primary)')}")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '120px 120px',
+          opacity: 0.015,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+
         {/* Subtle static, abstract decoration pattern */}
         <div style={{
           position: 'absolute',
@@ -191,6 +206,7 @@ export function ProfilePage() {
           backgroundSize: 'cover',
           borderRadius: '50%',
           border: '1.5px solid var(--color-primary)',
+          animation: 'spin 30s linear infinite',
           zIndex: 0,
         }} />
 

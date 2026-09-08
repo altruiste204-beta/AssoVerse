@@ -64,21 +64,16 @@ export function TopBar() {
           onClick={() => navigate('/dashboard')}
           style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', flexShrink: 0 }}
         >
-          <div className="fluorescent-logo" style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: 'var(--radius-md)',
-            background: 'var(--color-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 800,
-            color: '#FFFFFF',
-            fontSize: '16px',
-            fontFamily: 'var(--font-heading)',
-          }}>
-            A
-          </div>
+          <img 
+            src="/logo.svg" 
+            alt="AssoMboa Logo" 
+            style={{ 
+              width: '36px', 
+              height: '36px', 
+              objectFit: 'contain'
+            }}
+            referrerPolicy="no-referrer"
+          />
           <span style={{
             fontFamily: 'var(--font-heading)',
             fontSize: '18px',

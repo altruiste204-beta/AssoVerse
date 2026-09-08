@@ -90,22 +90,17 @@ export function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
         width: '100%',
       }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }} className="animate-slide-up">
-          <div className="fluorescent-logo" style={{
-            width: '72px',
-            height: '72px',
-            borderRadius: 'var(--radius-lg)',
-            background: 'var(--color-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 16px',
-            fontFamily: 'var(--font-heading)',
-            fontSize: '32px',
-            fontWeight: 700,
-            color: '#FFFFFF',
-          }}>
-            A
-          </div>
+          <img 
+            src="/logo.svg" 
+            alt="AssoMboa Logo" 
+            style={{ 
+              width: '72px', 
+              height: '72px', 
+              objectFit: 'contain',
+              margin: '0 auto 16px'
+            }}
+            referrerPolicy="no-referrer"
+          />
           <h1 style={{ fontSize: '28px', color: 'var(--color-text)', marginBottom: '8px' }}>
             {t('auth.welcome')}
           </h1>

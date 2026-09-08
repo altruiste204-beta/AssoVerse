@@ -92,6 +92,21 @@ export function AlertsPage() {
   return (
     <AppLayout>
       <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px', padding: '4px', borderRadius: 'var(--radius-lg)' }}>
+        {/* Subtle repeating background Ndop pattern */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: `url("${getNdopPatternSvg('var(--color-primary)')}")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '120px 120px',
+          opacity: 0.015,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+
         {/* Subtle static, abstract decoration pattern */}
         <div style={{
           position: 'absolute',
@@ -105,6 +120,7 @@ export function AlertsPage() {
           backgroundSize: 'cover',
           borderRadius: '50%',
           border: '1.5px solid var(--color-primary)',
+          animation: 'spin 30s linear infinite',
           zIndex: 0,
         }} />
 

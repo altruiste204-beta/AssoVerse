@@ -120,6 +120,7 @@ export default function App() {
             backgroundImage: `url("${getEkangPatternSvg('#F4C430')}")`,
             backgroundSize: 'cover',
             borderRadius: '50%',
+            animation: 'spin 45s linear infinite',
             zIndex: 0,
           }} />
 
@@ -134,6 +135,7 @@ export default function App() {
             backgroundImage: `url("${getNdopPatternSvg('#14532D')}")`,
             backgroundSize: 'cover',
             borderRadius: '50%',
+            animation: 'spin 60s linear infinite',
             zIndex: 0,
           }} />
           <BrowserRouter>

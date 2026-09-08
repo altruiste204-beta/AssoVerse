@@ -111,6 +111,7 @@ export function MeetingsPage() {
           backgroundSize: 'cover',
           borderRadius: '50%',
           border: '1.5px solid var(--color-primary)',
+          animation: 'spin 30s linear infinite',
           zIndex: 0,
         }} />
 
