@@ -5,7 +5,7 @@ import { useAuth } from '@/features/auth/auth-context'
 import { useTheme } from '@/features/dashboard/theme-context'
 import { useUserWallet } from '@/features/wallet/user-wallet-context'
 import { AppLayout } from '@/components/layout/AppLayout'
-import { Button, Card, Input, Badge, Select, Modal, Spinner } from '@/components/ui'
+import { Button, Card, Input, Badge, Select, Modal } from '@/components/ui'
 import { getEkangPatternSvg, getNdopPatternSvg } from '@/components/ui/CameroonPattern'
 import { formatXAF } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
@@ -121,6 +121,7 @@ export function ProfilePage() {
       }
       reader.readAsDataURL(file)
     } catch (err) {
+      console.error(err)
       setKycError("Erreur lors de la lecture du document.")
     } finally {
       setKycUploading(false)
@@ -147,6 +148,7 @@ export function ProfilePage() {
         setKycSuccess(false)
       }, 2000)
     } catch (err) {
+      console.error(err)
       setKycError("Erreur lors de la soumission de la vérification.")
     } finally {
       setKycSubmitting(false)

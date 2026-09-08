@@ -113,16 +113,6 @@ export function AssociationsPage() {
   const [runTour, setRunTour] = useState(false)
   const [tourKey, setTourKey] = useState(0)
 
-  useEffect(() => {
-    const tourCompleted = localStorage.getItem('assomboa_onboarding_completed')
-    if (!tourCompleted) {
-      const timer = setTimeout(() => {
-        setRunTour(true)
-      }, 1200)
-      return () => clearTimeout(timer)
-    }
-  }, [])
-
   const tourSteps: any[] = [
     {
       target: '#assoc-page-title',

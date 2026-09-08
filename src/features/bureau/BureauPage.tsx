@@ -19,6 +19,8 @@ export function BureauPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [creating, setCreating] = useState(false)
   const [approving, setApproving] = useState<string | null>(null)
+  const [executing, setExecuting] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // form
   const [reqType, setReqType] = useState('collection')
@@ -81,6 +83,69 @@ export function BureauPage() {
       }
       await loadData()
     } catch (err) { console.error(err) } finally { setApproving(null) }
+  }
+
+  const handleExecutePayment = async (req: TransactionRequest) => {
+    setExecuting(req.id)
+    setErrorMsg(null)
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+        // Fallback / Mock
+        await supabase
+          .from('transaction_requests')
+          .update({
+            status: 'completed',
+            executed_at: new Date().toISOString(),
+          })
+          .eq('id', req.id)
+
+        await supabase.from('transactions').insert({
+          association_id: req.association_id,
+          transaction_request_id: req.id,
+          type: req.type,
+          amount: req.amount,
+          currency: req.currency || 'XAF',
+          status: 'success',
+          external_reference: `mock-tx-${Date.now()}`,
+          description: req.description || `${req.type} executed`,
+        })
+      } else {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY
+        const response = await fetch(
+          `${supabaseUrl}/functions/v1/initiate-payment`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              transaction_request_id: req.id,
+              type: req.type,
+              amount: req.amount,
+              currency: req.currency || 'XAF',
+              beneficiary_name: req.beneficiary_name,
+              beneficiary_phone: req.beneficiary_phone,
+              association_id: req.association_id,
+              related_entity_type: req.related_entity_type,
+              related_entity_id: req.related_entity_id,
+            }),
+          }
+        )
+        if (!response.ok) {
+          const errData = await response.json()
+          throw new Error(errData.error || 'Erreur lors du traitement du paiement')
+        }
+      }
+      await loadData()
+    } catch (err) {
+      console.error(err)
+      setErrorMsg(err instanceof Error ? err.message : 'Erreur inconnue')
+    } finally {
+      setExecuting(null)
+    }
   }
 
   if (!currentAssociation) {
@@ -164,6 +229,16 @@ export function BureauPage() {
                         <Button size="sm" variant="danger" onClick={() => handleApprove(req, false)}>
                           <X size={14} /> {t('bureau.reject')}
                         </Button>
+                      </div>
+                    )}
+                    {req.status === 'approved' && isBureauMember && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                        <Button size="sm" variant="primary" loading={executing === req.id} onClick={() => handleExecutePayment(req)}>
+                          <ShieldCheck size={14} style={{ marginRight: '6px' }} /> {t('bureau.executePayment')}
+                        </Button>
+                        {errorMsg && executing === req.id && (
+                          <p style={{ fontSize: '12px', color: 'var(--color-error)', margin: 0 }}>{errorMsg}</p>
+                        )}
                       </div>
                     )}
                   </Card>

@@ -73,13 +73,15 @@ export function KycPage() {
           })
           .eq('id', user.id)
       } else {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY
         const response = await fetch(
           `${supabaseUrl}/functions/v1/verify-kyc`,
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
               user_id: user.id,

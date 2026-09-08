@@ -44,11 +44,6 @@ export function generateCameroonAvatar(seed: string): string {
   for (let i = 0; i < seed.length; i++) {
     hash = seed.charCodeAt(i) + ((hash << 5) - hash)
   }
-  const getRand = (min: number, max: number, offset = 0) => {
-    const val = Math.abs((hash + offset) % 1000) / 1000
-    return min + val * (max - min)
-  }
-
   // Determine design combinations from the seed
   const bgType = Math.abs(hash) % 3 // 0 = Royal Bordeaux, 1 = Golden Sahel, 2 = Grassfields Blue
   const maskType = Math.abs(hash + 1) % 3 // 0 = Ekang Long Mask, 1 = Bamileke Beaded, 2 = Bamum Bronze
@@ -57,17 +52,11 @@ export function generateCameroonAvatar(seed: string): string {
 
   // 1. Backgrounds
   let bgFill = '#14532D'
-  let bgAccent = 'rgba(255, 115, 0, 0.25)'
-  let themeName = 'Bordeaux Royal'
 
   if (bgType === 1) {
     bgFill = '#D97706'
-    bgAccent = 'rgba(143, 1, 0, 0.3)'
-    themeName = 'Sahel Doré'
   } else if (bgType === 2) {
     bgFill = '#1E3A8A'
-    bgAccent = 'rgba(255, 115, 0, 0.3)'
-    themeName = 'Ndop Grassfields'
   }
 
   // Draw traditional Ndop background pattern overlay

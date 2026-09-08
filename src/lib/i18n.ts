@@ -108,6 +108,7 @@ const resources = {
       'bureau.beneficiary': 'Bénéficiaire',
       'bureau.description': 'Description',
       'bureau.submit': 'Soumettre la demande',
+      'bureau.executePayment': 'Exécuter la transaction (NotchPay)',
       // Main Levée
       'mainLevee.title': 'Main Levée',
       'mainLevee.create': 'Lancer une Main Levée',
@@ -306,6 +307,7 @@ const resources = {
       'bureau.beneficiary': 'Beneficiary',
       'bureau.description': 'Description',
       'bureau.submit': 'Submit request',
+      'bureau.executePayment': 'Execute Transaction (NotchPay)',
       'mainLevee.title': 'Main Levée',
       'mainLevee.create': 'Start a Main Levée',
       'mainLevee.beneficiary': 'Beneficiary',

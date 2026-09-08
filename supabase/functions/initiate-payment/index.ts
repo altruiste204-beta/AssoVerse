@@ -18,6 +18,24 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Missing or invalid authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const token = authHeader.split(" ")[1];
+    const userClient = createClient(supabaseUrl, token);
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { transaction_request_id, type, amount, currency, beneficiary_name, beneficiary_phone, association_id, related_entity_type, related_entity_id } = await req.json();
 
     // Verify the transaction request exists and has enough approvals
@@ -31,6 +49,20 @@ Deno.serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ error: "Transaction request not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify calling user is member of the bureau for this association
+    const { data: assignments, error: assignmentErr } = await supabase
+      .from("bureau_assignments")
+      .select("id")
+      .eq("association_id", txReq.association_id)
+      .eq("user_id", user.id);
+
+    if (assignmentErr || !assignments || assignments.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: You are not authorized as a Bureau member for this association" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
