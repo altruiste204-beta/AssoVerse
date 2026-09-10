@@ -288,6 +288,21 @@ ALTER TABLE consent_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================
+-- HELPER FUNCTIONS FOR SECURITY (To prevent RLS Infinite Recursion)
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.check_is_association_member(assoc_id uuid, user_id uuid)
+RETURNS boolean SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.association_members 
+    WHERE association_id = assoc_id 
+    AND association_members.user_id = $2 
+    AND status = 'active'
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================
 -- POLICIES
 -- ============================================================
 -- profiles
@@ -343,7 +358,7 @@ CREATE POLICY "join_code_history_select" ON join_code_history FOR SELECT TO auth
 DROP POLICY IF EXISTS "members_select" ON association_members;
 CREATE POLICY "members_select" ON association_members FOR SELECT TO authenticated USING (
   user_id = auth.uid()
-  OR EXISTS (SELECT 1 FROM association_members am2 WHERE am2.association_id = association_members.association_id AND am2.user_id = auth.uid() AND am2.status = 'active')
+  OR check_is_association_member(association_id, auth.uid())
 );
 DROP POLICY IF EXISTS "members_insert" ON association_members;
 CREATE POLICY "members_insert" ON association_members FOR INSERT TO authenticated WITH CHECK (
@@ -555,6 +570,10 @@ CREATE POLICY "messages_delete" ON messages FOR DELETE TO authenticated USING (s
 DROP POLICY IF EXISTS "subscriptions_select" ON subscriptions;
 CREATE POLICY "subscriptions_select" ON subscriptions FOR SELECT TO authenticated USING (
   EXISTS (SELECT 1 FROM association_members am WHERE am.association_id = subscriptions.association_id AND am.user_id = auth.uid() AND am.status = 'active')
+);
+DROP POLICY IF EXISTS "subscriptions_insert" ON subscriptions;
+CREATE POLICY "subscriptions_insert" ON subscriptions FOR INSERT TO authenticated WITH CHECK (
+  EXISTS (SELECT 1 FROM associations a WHERE a.id = subscriptions.association_id AND a.owner_id = auth.uid())
 );
 DROP POLICY IF EXISTS "subscriptions_update" ON subscriptions;
 CREATE POLICY "subscriptions_update" ON subscriptions FOR UPDATE TO authenticated USING (

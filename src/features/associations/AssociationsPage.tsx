@@ -102,6 +102,7 @@ export function AssociationsPage() {
   const [showJoin, setShowJoin] = useState(false)
   const [joinCode, setJoinCode] = useState('')
   const [joinError, setJoinError] = useState<string | null>(null)
+  const [createError, setCreateError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [joining, setJoining] = useState(false)
   const [fabOpen, setFabOpen] = useState(false)
@@ -181,6 +182,7 @@ export function AssociationsPage() {
   const handleCreate = async () => {
     if (!user || !name) return
     setCreating(true)
+    setCreateError(null)
     try {
       const { data: assoc, error } = await supabase.from('associations').insert({
         name, owner_id: user.id, city, region,
@@ -216,6 +218,7 @@ export function AssociationsPage() {
       await refreshAssociations()
     } catch (err) {
       console.error('Create error:', err)
+      setCreateError(err instanceof Error ? err.message : t('common.error'))
     } finally {
       setCreating(false)
     }
@@ -584,6 +587,7 @@ export function AssociationsPage() {
           <Input id="assoc-cassation-input" label={t('assoc.cassationDate')} value={cassationDate} onChange={setCassationDate} type="date" aria-label="Date de cassation" />
           <Input id="assoc-receipt-input" label="Numéro de récépissé (Optionnel)" value={receiptNumber} onChange={setReceiptNumber} type="text" placeholder="Ex: Réf/MinaT/123-A" aria-label="Numéro de récépissé officiel de déclaration de l'association" />
           <Input id="assoc-description-input" label={t('assoc.description')} value={description} onChange={setDescription} multiline rows={2} aria-label="Description de l'association" />
+          {createError && <div style={{ color: 'var(--color-error)', fontSize: '13px' }} role="alert">{createError}</div>}
           <Button onClick={handleCreate} fullWidth loading={creating} disabled={!name} aria-label="Soumettre la création de l'association">
             {t('assoc.createButton')}
           </Button>
