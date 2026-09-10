@@ -41,12 +41,13 @@ export function LandingPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img 
-            src="/logo.svg" 
+            src="/logo.png" 
             alt="AssoMboa Logo" 
             style={{ 
-              width: '40px', 
-              height: '40px', 
-              objectFit: 'contain'
+              width: '42px', 
+              height: '42px', 
+              objectFit: 'contain',
+              borderRadius: '8px',
             }}
             referrerPolicy="no-referrer"
           />

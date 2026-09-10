@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim()
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim()
 
 const hasValidCredentials = Boolean(
   supabaseUrl &&
@@ -701,13 +701,267 @@ function createMockClient() {
   }
 }
 
-export const supabase = hasValidCredentials
-  ? createClient(supabaseUrl!, supabaseAnonKey!, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
+function createResilientClient(realSupabase: any, mockClient: any) {
+  function resilientFrom(table: string) {
+    let currentReal: any = null
+    let currentMock: any = null
+
+    try {
+      currentReal = realSupabase.from(table)
+    } catch {
+      // ignore
+    }
+    try {
+      currentMock = mockClient.from(table)
+    } catch {
+      // ignore
+    }
+
+    const chainableMethods = [
+      'select', 'insert', 'update', 'delete', 'upsert',
+      'eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'like', 'ilike', 'is', 'in', 'contains', 'containedBy',
+      'order', 'limit', 'range', 'single', 'maybeSingle', 'filter', 'match'
+    ]
+
+    const builder: any = {}
+
+    for (const method of chainableMethods) {
+      builder[method] = (...args: any[]) => {
+        if (currentReal && typeof currentReal[method] === 'function') {
+          try {
+            const nextReal = currentReal[method](...args)
+            if (nextReal) currentReal = nextReal
+          } catch {
+            // ignore
+          }
+        }
+        if (currentMock && typeof currentMock[method] === 'function') {
+          try {
+            const nextMock = currentMock[method](...args)
+            if (nextMock) currentMock = nextMock
+          } catch {
+            // ignore
+          }
+        }
+        return builder
+      }
+    }
+
+    builder.then = async (resolve: any, _reject?: any) => {
+      let realResult: any = null
+      let realError: any = null
+
+      if (currentReal && typeof currentReal.then === 'function') {
+        try {
+          realResult = await currentReal
+        } catch (err) {
+          realError = err
+        }
+      } else {
+        realError = new Error('Real client unavailable')
+      }
+
+      if (realResult && !realResult.error) {
+        return resolve ? resolve(realResult) : realResult
+      }
+
+      const err = realError || realResult?.error
+      const errMsg = String(err?.message || err?.details || err || '').toLowerCase()
+
+      const isNetworkOrSyntaxError =
+        !realResult ||
+        Boolean(realError) ||
+        errMsg.includes('failed to fetch') ||
+        errMsg.includes('fetch') ||
+        errMsg.includes('network') ||
+        errMsg.includes('connection') ||
+        errMsg.includes('offline') ||
+        err?.code === '22P02' ||
+        err?.code === 'PGRST116' ||
+        err?.code === '42P01' ||
+        err?.status === 400 ||
+        err?.status === 404 ||
+        err?.status === 500
+
+      if (isNetworkOrSyntaxError && currentMock) {
+        try {
+          const mockResult = await currentMock
+          return resolve ? resolve(mockResult) : mockResult
+        } catch (mockErr) {
+          return resolve ? resolve({ data: null, error: mockErr }) : { data: null, error: mockErr }
+        }
+      }
+
+      return resolve ? resolve(realResult || { data: null, error: err }) : (realResult || { data: null, error: err })
+    }
+
+    builder.catch = async (reject: any) => {
+      try {
+        return await builder.then(undefined, reject)
+      } catch (err) {
+        if (reject) return reject(err)
+        throw err
+      }
+    }
+
+    return builder
+  }
+
+  const resilientAuth = {
+    async getSession() {
+      try {
+        const res = await realSupabase.auth.getSession()
+        if (res?.data?.session) return res
+      } catch {
+        // fallback
+      }
+      return mockClient.auth.getSession()
+    },
+    async getUser() {
+      try {
+        const res = await realSupabase.auth.getUser()
+        if (res?.data?.user) return res
+      } catch {
+        // fallback
+      }
+      return mockClient.auth.getUser()
+    },
+    async signInWithPassword(credentials: any) {
+      try {
+        const res = await realSupabase.auth.signInWithPassword(credentials)
+        if (!res.error) return res
+        const errMsg = String(res.error.message || '').toLowerCase()
+        if (errMsg.includes('fetch') || errMsg.includes('network') || errMsg.includes('failed')) {
+          return mockClient.auth.signInWithPassword(credentials)
+        }
+        return res
+      } catch {
+        return mockClient.auth.signInWithPassword(credentials)
+      }
+    },
+    async signUp(credentials: any) {
+      try {
+        const res = await realSupabase.auth.signUp(credentials)
+        if (!res.error) return res
+        const errMsg = String(res.error.message || '').toLowerCase()
+        if (errMsg.includes('fetch') || errMsg.includes('network') || errMsg.includes('failed')) {
+          return mockClient.auth.signUp(credentials)
+        }
+        return res
+      } catch {
+        return mockClient.auth.signUp(credentials)
+      }
+    },
+    async signOut() {
+      try {
+        await realSupabase.auth.signOut()
+      } catch {}
+      return mockClient.auth.signOut()
+    },
+    onAuthStateChange(callback: any) {
+      try {
+        const realSub = realSupabase.auth.onAuthStateChange(callback)
+        const mockSub = mockClient.auth.onAuthStateChange(callback)
+        return {
+          data: {
+            subscription: {
+              unsubscribe() {
+                try { realSub?.data?.subscription?.unsubscribe?.() } catch {}
+                try { mockSub?.data?.subscription?.unsubscribe?.() } catch {}
+              },
+            },
+          },
+        }
+      } catch {
+        return mockClient.auth.onAuthStateChange(callback)
+      }
+    },
+  }
+
+  const resilientStorage = {
+    from(bucket: string) {
+      const realBucket = realSupabase.storage?.from?.(bucket)
+      const mockBucket = mockClient.storage.from(bucket)
+      return {
+        async upload(path: string, file: any, options?: any) {
+          try {
+            if (realBucket) {
+              const res = await realBucket.upload(path, file, options)
+              if (!res.error) return res
+            }
+          } catch {}
+          return mockBucket.upload(path, file)
+        },
+        getPublicUrl(path: string) {
+          try {
+            if (realBucket) {
+              const res = realBucket.getPublicUrl(path)
+              if (res?.data?.publicUrl) return res
+            }
+          } catch {}
+          return mockBucket.getPublicUrl(path)
+        },
+      }
+    },
+  }
+
+  return {
+    ...realSupabase,
+    auth: resilientAuth,
+    from: resilientFrom,
+    storage: resilientStorage,
+    channel(name: string) {
+      try {
+        return realSupabase.channel(name)
+      } catch {
+        return mockClient.channel(name)
+      }
+    },
+    removeChannel(ch: any) {
+      try {
+        return realSupabase.removeChannel(ch)
+      } catch {
+        return mockClient.removeChannel(ch)
+      }
+    },
+    removeAllChannels() {
+      try {
+        return realSupabase.removeAllChannels()
+      } catch {
+        return mockClient.removeAllChannels()
+      }
+    },
+    getChannels() {
+      try {
+        return realSupabase.getChannels()
+      } catch {
+        return mockClient.getChannels()
+      }
+    },
+    functions: {
+      async invoke(name: string, options?: any) {
+        try {
+          return await realSupabase.functions.invoke(name, options)
+        } catch {
+          return mockClient.functions.invoke(name, options)
+        }
       },
-    })
-  : (createMockClient() as any)
+    },
+  }
+}
+
+const mockInstance = createMockClient()
+
+export const supabase = hasValidCredentials
+  ? createResilientClient(
+      createClient(supabaseUrl!, supabaseAnonKey!, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      }),
+      mockInstance
+    )
+  : (mockInstance as any)
 

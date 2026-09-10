@@ -9,6 +9,7 @@ import { Button, Card, Input, Badge, Select, Modal } from '@/components/ui'
 import { getEkangPatternSvg, getNdopPatternSvg } from '@/components/ui/CameroonPattern'
 import { formatXAF } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
+import { ActivityLogSection } from './ActivityLogSection'
 import { Mail, Phone, ShieldCheck, Sun, Moon, Globe, LogOut, Wallet, ArrowDownLeft, ArrowUpRight, Trash2, Archive, UserX, Copy, Share2, ShieldAlert, Check, Upload, Scale, BookOpen, Eye, ArrowLeft, ChevronRight, User, Lock, Settings, HelpCircle, PhoneCall } from 'lucide-react'
 
 export function ProfilePage() {
@@ -1303,11 +1304,23 @@ export function ProfilePage() {
                 </div>
               </Card>
 
-              {/* SECTION 2: ZONE DE SÉCURITÉ */}
+              {/* SECTION 2: JOURNAL D'ACTIVITÉ */}
+              <ActivityLogSection 
+                userId={user?.id} 
+                onJumpToPassword={() => {
+                  const el = document.getElementById('new-password')
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    el.focus()
+                  }
+                }}
+              />
+
+              {/* SECTION 3: ZONE DE SÉCURITÉ */}
               <Card style={{ border: '1px solid rgba(220, 38, 38, 0.2)', background: 'rgba(220, 38, 38, 0.01)', padding: '20px' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-error)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(220, 38, 38, 0.15)', paddingBottom: '8px' }}>
                   <ShieldAlert size={18} color="var(--color-error)" />
-                  2. Zone de Sécurité
+                  3. Zone de Sécurité
                 </h3>
                 
                 <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px', lineHeight: 1.5 }}>

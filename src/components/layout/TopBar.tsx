@@ -65,12 +65,13 @@ export function TopBar() {
           style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', flexShrink: 0 }}
         >
           <img 
-            src="/logo.svg" 
+            src="/logo.png" 
             alt="AssoMboa Logo" 
             style={{ 
               width: '36px', 
               height: '36px', 
-              objectFit: 'contain'
+              objectFit: 'contain',
+              borderRadius: '8px',
             }}
             referrerPolicy="no-referrer"
           />

@@ -45,6 +45,20 @@ export function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
     }
   }
 
+  const handleDemoLogin = async () => {
+    setError(null)
+    setLoading(true)
+    setEmail('altruiste2.0.4@gmail.com')
+    setPassword('demo1234')
+    const { error } = await signIn('altruiste2.0.4@gmail.com', 'demo1234')
+    if (error) {
+      setError(error)
+      setLoading(false)
+      return
+    }
+    navigate('/dashboard')
+  }
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg)' }}>
       <div style={{
@@ -91,12 +105,13 @@ export function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
       }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }} className="animate-slide-up">
           <img 
-            src="/logo.svg" 
+            src="/logo.png" 
             alt="AssoMboa Logo" 
             style={{ 
-              width: '72px', 
-              height: '72px', 
+              width: '76px', 
+              height: '76px', 
               objectFit: 'contain',
+              borderRadius: '12px',
               margin: '0 auto 16px'
             }}
             referrerPolicy="no-referrer"
@@ -161,6 +176,31 @@ export function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
           <Button type="submit" fullWidth size="lg" loading={loading}>
             {isSignup ? t('auth.signup') : t('auth.login')}
           </Button>
+
+          {!isSignup && (
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              style={{
+                padding: '10px 16px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px dashed var(--color-primary)',
+                background: 'rgba(217, 119, 6, 0.08)',
+                color: 'var(--color-primary)',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'background 0.2s',
+              }}
+            >
+              <span>⚡</span> Connexion rapide (Alain Mboa - altruiste2.0.4@gmail.com)
+            </button>
+          )}
 
           {isSignup && (
             <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', textAlign: 'center', marginTop: '-4px', lineHeight: 1.4 }}>

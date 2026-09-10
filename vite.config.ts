@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'logo.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'AssoMboa',
         short_name: 'AssoMboa',
@@ -18,6 +18,11 @@ export default defineConfig({
         orientation: 'portrait',
         start_url: '/',
         icons: [
+          {
+            src: '/logo.png',
+            sizes: '1254x1254',
+            type: 'image/png',
+          },
           {
             src: '/icon-192.png',
             sizes: '192x192',
@@ -51,8 +56,7 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: true, // Enables PWA Service Worker testing in dev / AI Studio preview
-        type: 'module',
+        enabled: false,
       },
     }),
   ],
