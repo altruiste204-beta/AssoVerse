@@ -31,6 +31,8 @@ const MessagingPage = lazy(() => import('@/features/messaging/MessagingPage').th
 const CguPage = lazy(() => import('@/features/legal/CguPage').then(m => ({ default: m.CguPage })))
 const MentionsLegalesPage = lazy(() => import('@/features/legal/MentionsLegalesPage').then(m => ({ default: m.MentionsLegalesPage })))
 const PolitiqueConfidentialitePage = lazy(() => import('@/features/legal/PolitiqueConfidentialitePage').then(m => ({ default: m.PolitiqueConfidentialitePage })))
+const FaqPage = lazy(() => import('@/features/help/FaqPage').then(m => ({ default: m.FaqPage })))
+const HelpPage = lazy(() => import('@/features/help/HelpPage').then(m => ({ default: m.HelpPage })))
 
 function RouteFallback() {
   return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}><Spinner size={32} /></div>
@@ -80,6 +82,8 @@ function AppRoutes() {
           <Route path="/messaging" element={<MessagingPage />} />
           <Route path="/alerts" element={<AlertsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/aide" element={<HelpPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -11,7 +11,7 @@ import { ShieldCheck, Plus, Check, X, Users } from 'lucide-react'
 
 export function BureauPage() {
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const { currentAssociation, userRole } = useAssociation()
   const [assignments, setAssignments] = useState<(BureauAssignment & { profile?: Profile })[]>([])
   const [requests, setRequests] = useState<(TransactionRequest & { approvals?: (BureauApproval & { profile?: Profile })[] })[]>([])
@@ -21,6 +21,7 @@ export function BureauPage() {
   const [approving, setApproving] = useState<string | null>(null)
   const [executing, setExecuting] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [modalError, setModalError] = useState<string | null>(null)
 
   // form
   const [reqType, setReqType] = useState('collection')
@@ -50,12 +51,21 @@ export function BureauPage() {
 
   const handleCreate = async () => {
     if (!user || !currentAssociation || !amount) return
+    setModalError(null)
+
+    // Block disbursement requests > 50,000 XAF if kyc_verified is false
+    const parsedAmount = parseFloat(amount)
+    if (reqType === 'disbursement' && parsedAmount > 50000 && !profile?.kyc_verified) {
+      setModalError("Vérification KYC (Liveness check) requise pour les versements supérieurs à 50 000 XAF. Veuillez compléter votre KYC dans la rubrique profil.")
+      return
+    }
+
     setCreating(true)
     try {
       const { error } = await supabase.from('transaction_requests').insert({
         association_id: currentAssociation.id,
         requested_by: user.id, type: reqType,
-        amount: parseFloat(amount), description,
+        amount: parsedAmount, description,
         beneficiary_name: beneficiary, beneficiary_phone: beneficiaryPhone,
         required_approvals: 2, status: 'pending',
       })
@@ -63,8 +73,12 @@ export function BureauPage() {
       setShowCreate(false)
       setAmount(''); setBeneficiary(''); setBeneficiaryPhone(''); setDescription('')
       await loadData()
-    } catch (err) { console.error(err) } finally { setCreating(false) }
+    } catch (err) {
+      console.error(err)
+      setModalError(err instanceof Error ? err.message : 'Erreur lors de la création de la demande')
+    } finally { setCreating(false) }
   }
+
 
   const handleApprove = async (req: TransactionRequest, approved: boolean) => {
     if (!user) return
@@ -260,6 +274,11 @@ export function BureauPage() {
           <Input label={t('bureau.beneficiary')} value={beneficiary} onChange={setBeneficiary} />
           <Input label={t('mainLevee.beneficiaryPhone')} value={beneficiaryPhone} onChange={setBeneficiaryPhone} />
           <Input label={t('bureau.description')} value={description} onChange={setDescription} multiline rows={2} />
+          {modalError && (
+            <p style={{ fontSize: '13px', color: 'var(--color-error)', margin: '4px 0', lineHeight: 1.4 }}>
+              {modalError}
+            </p>
+          )}
           <Button onClick={handleCreate} fullWidth loading={creating} disabled={!amount}>
             {t('bureau.submit')}
           </Button>

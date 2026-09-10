@@ -28,6 +28,12 @@ export function MeetingsPage() {
   const [scheduledAt, setScheduledAt] = useState('')
   const [platform, setPlatform] = useState('direct')
 
+  // filters
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterType, setFilterType] = useState('all')
+  const [filterStartDate, setFilterStartDate] = useState('')
+  const [filterEndDate, setFilterEndDate] = useState('')
+
   const loadMeetings = useCallback(async () => {
     if (!currentAssociation) { setLoading(false); return }
     const cacheKey = `assomboa_offline_meetings_${currentAssociation.id}`
@@ -133,6 +139,42 @@ export function MeetingsPage() {
     }
   }
 
+  const getFilteredMeetings = () => {
+    return meetings.filter(m => {
+      const matchTab = activeTab === 'upcoming' ? m.status !== 'ended' : m.status === 'ended'
+      if (!matchTab) return false
+
+      if (activeTab === 'history') {
+        if (searchTerm) {
+          const term = searchTerm.toLowerCase()
+          const titleMatch = m.title?.toLowerCase().includes(term)
+          const descMatch = m.description?.toLowerCase().includes(term)
+          if (!titleMatch && !descMatch) return false
+        }
+
+        if (filterType !== 'all') {
+          if (m.platform !== filterType) return false
+        }
+
+        if (filterStartDate) {
+          const start = new Date(filterStartDate)
+          start.setHours(0, 0, 0, 0)
+          const meetingDate = new Date(m.scheduled_at)
+          if (meetingDate < start) return false
+        }
+
+        if (filterEndDate) {
+          const end = new Date(filterEndDate)
+          end.setHours(23, 59, 59, 999)
+          const meetingDate = new Date(m.scheduled_at)
+          if (meetingDate > end) return false
+        }
+      }
+
+      return true
+    })
+  }
+
   if (!currentAssociation) {
     return <AppLayout><EmptyState icon={<Calendar size={48} />} title={t('dashboard.noAssociation')} /></AppLayout>
   }
@@ -218,17 +260,96 @@ export function MeetingsPage() {
           </button>
         </div>
 
+        {activeTab === 'history' && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '12px',
+            background: 'var(--color-bg-alt)',
+            padding: '16px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--color-border)',
+            marginTop: '8px',
+            marginBottom: '4px'
+          }} className="animate-fade-in">
+            <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 200px' }}>
+                <Input
+                  id="search-sessions-input"
+                  label="Rechercher une réunion"
+                  placeholder="Rechercher par titre, description..."
+                  value={searchTerm}
+                  onChange={setSearchTerm}
+                />
+              </div>
+              <div style={{ flex: '1 1 180px' }}>
+                <Select
+                  id="filter-type-select"
+                  label="Type de réunion"
+                  value={filterType}
+                  onChange={setFilterType}
+                  options={[
+                    { value: 'all', label: 'Tous les types' },
+                    { value: 'direct', label: 'Salon Vidéo (WebRTC)' },
+                    { value: 'audio', label: 'Salon Audio' }
+                  ]}
+                />
+              </div>
+            </div>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <div style={{ flex: '1 1 140px' }}>
+                <Input
+                  id="filter-start-date"
+                  label="Depuis le"
+                  type="date"
+                  value={filterStartDate}
+                  onChange={setFilterStartDate}
+                />
+              </div>
+              <div style={{ flex: '1 1 140px' }}>
+                <Input
+                  id="filter-end-date"
+                  label="Jusqu'au"
+                  type="date"
+                  value={filterEndDate}
+                  onChange={setFilterEndDate}
+                />
+              </div>
+              {(searchTerm || filterType !== 'all' || filterStartDate || filterEndDate) && (
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={() => {
+                    setSearchTerm('')
+                    setFilterType('all')
+                    setFilterStartDate('')
+                    setFilterEndDate('')
+                  }}
+                  style={{ height: '42px', display: 'flex', alignItems: 'center' }}
+                  aria-label="Effacer les filtres"
+                >
+                  Réinitialiser
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}><Spinner size={32} /></div>
-        ) : meetings.filter(m => activeTab === 'upcoming' ? m.status !== 'ended' : m.status === 'ended').length === 0 ? (
+        ) : getFilteredMeetings().length === 0 ? (
           <EmptyState 
             icon={<Calendar size={48} />} 
-            title={activeTab === 'upcoming' ? t('meetings.noMeetings') : "Aucun historique de session disponible"} 
+            title={activeTab === 'upcoming' 
+              ? t('meetings.noMeetings') 
+              : (searchTerm || filterType !== 'all' || filterStartDate || filterEndDate) 
+                ? "Aucune session ne correspond à vos filtres" 
+                : "Aucun historique de session disponible"
+            } 
           />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {meetings
-              .filter(m => activeTab === 'upcoming' ? m.status !== 'ended' : m.status === 'ended')
+            {getFilteredMeetings()
               .map((mtg) => {
                 const isUpcoming = new Date(mtg.scheduled_at) > new Date()
                 const isEnded = mtg.status === 'ended'
@@ -244,15 +365,33 @@ export function MeetingsPage() {
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <h3 style={{ fontSize: '15px', color: 'var(--color-text)', fontWeight: 600 }}>{mtg.title}</h3>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span 
+                              className={!isEnded && !isUpcoming ? "animate-pulse" : ""}
+                              style={{
+                                width: '10px',
+                                height: '10px',
+                                borderRadius: '50%',
+                                backgroundColor: isEnded ? '#9CA3AF' : (isUpcoming ? '#3B82F6' : '#22C55E'),
+                                display: 'inline-block',
+                                flexShrink: 0,
+                              }} 
+                              title={isEnded ? "Terminée" : (isUpcoming ? "Planifiée" : "En cours")}
+                            />
+                            <h3 style={{ fontSize: '15px', color: 'var(--color-text)', fontWeight: 600 }}>{mtg.title}</h3>
+                          </div>
                           {isEnded ? (
                             <Badge variant="default" size="sm">
                               Terminée
                             </Badge>
-                          ) : (
+                          ) : !isUpcoming ? (
                             <Badge variant="success" size="sm">
                               <Radio size={12} className="animate-pulse" />
-                              Direct In-App
+                              En cours
+                            </Badge>
+                          ) : (
+                            <Badge variant="accent" size="sm">
+                              Planifiée
                             </Badge>
                           )}
                         </div>

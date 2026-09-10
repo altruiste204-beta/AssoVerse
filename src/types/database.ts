@@ -26,6 +26,7 @@ export interface Profile {
   id_document_url: string | null
   kyc_status: KycStatus
   kyc_verified_at: string | null
+  kyc_verified?: boolean
   preferred_language: Language
   avatar_url: string | null
   created_at: string

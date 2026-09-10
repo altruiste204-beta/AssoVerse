@@ -257,9 +257,24 @@ export function TopBar() {
                 color: 'var(--color-primary)',
                 fontWeight: 600,
                 fontSize: '14px',
+                overflow: 'hidden',
+                padding: 0,
               }}
             >
-              {profile?.full_name?.charAt(0).toUpperCase() || <UserIcon size={18} />}
+              {profile?.avatar_url ? (
+                <img 
+                  src={profile.avatar_url} 
+                  alt="Avatar" 
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover' 
+                  }}
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                profile?.full_name?.charAt(0).toUpperCase() || <UserIcon size={18} />
+              )}
             </button>
             <AnimatePresence>
               {menuOpen && (
