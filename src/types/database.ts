@@ -15,7 +15,7 @@ export type ContributionStatus = 'pending' | 'success' | 'failed' | 'refunded'
 export type EventType = 'heureux' | 'malheureux'
 export type EventStatus = 'active' | 'closed' | 'cancelled'
 export type CassationType = 'supprimee' | 'desactivee' | 'renouvelee'
-export type MeetingPlatform = 'meet' | 'zoom' | 'whatsapp' | 'other'
+export type MeetingPlatform = 'meet' | 'zoom' | 'whatsapp' | 'other' | 'direct' | 'audio'
 export type SubscriptionPlan = 'free' | 'premium'
 export type Language = 'fr' | 'en'
 
@@ -218,6 +218,8 @@ export interface Meeting {
   platform: MeetingPlatform | null
   created_by: string
   created_at: string
+  status?: 'upcoming' | 'ended'
+  ended_at?: string | null
 }
 
 export interface Conversation {

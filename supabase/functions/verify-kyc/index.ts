@@ -66,7 +66,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Validate phone format (basic Cameroon phone validation)
-    const phoneClean = phone?.replace(/[\s\-]/g, "");
+    const phoneClean = phone?.replace(/[\s-]/g, "");
     if (!phoneClean || (phoneClean.length < 9 && !phoneClean.startsWith("+237"))) {
       await supabase
         .from("profiles")

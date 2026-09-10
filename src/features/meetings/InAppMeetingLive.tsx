@@ -13,11 +13,13 @@ interface InAppMeetingLiveProps {
     id: string
     title: string
     description?: string | null
+    created_by?: string | null
   }
   onLeave: () => void
+  onEndMeeting?: (chatTranscript: Array<{ sender: string, text: string, time: string }>) => void
 }
 
-export function InAppMeetingLive({ meeting, onLeave }: InAppMeetingLiveProps) {
+export function InAppMeetingLive({ meeting, onLeave, onEndMeeting }: InAppMeetingLiveProps) {
   const { profile } = useAuth()
   const { currentAssociation } = useAssociation()
   
@@ -132,10 +134,34 @@ export function InAppMeetingLive({ meeting, onLeave }: InAppMeetingLiveProps) {
             <Shield size={12} style={{ marginRight: '4px' }} />
             Chiffrement WebRTC de bout en bout
           </Badge>
+          {onEndMeeting && (
+            <button 
+              onClick={() => onEndMeeting(messages)}
+              style={{
+                background: '#EF4444',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: 'var(--radius-md)',
+                padding: '8px 16px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#DC2626'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#EF4444'}
+            >
+              <PhoneOff size={15} />
+              Arrêter la session
+            </button>
+          )}
           <button 
             onClick={onLeave}
             style={{
-              background: '#EF4444',
+              background: '#3F3F46',
               color: '#FFFFFF',
               border: 'none',
               borderRadius: 'var(--radius-md)',
@@ -148,10 +174,9 @@ export function InAppMeetingLive({ meeting, onLeave }: InAppMeetingLiveProps) {
               gap: '6px',
               transition: 'all 0.2s'
             }}
-            onMouseOver={(e) => e.currentTarget.style.background = '#DC2626'}
-            onMouseOut={(e) => e.currentTarget.style.background = '#EF4444'}
+            onMouseOver={(e) => e.currentTarget.style.background = '#52525B'}
+            onMouseOut={(e) => e.currentTarget.style.background = '#3F3F46'}
           >
-            <PhoneOff size={15} />
             Quitter
           </button>
         </div>

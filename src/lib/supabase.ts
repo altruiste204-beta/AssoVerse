@@ -287,6 +287,8 @@ function createMockClient() {
           duration_minutes: 60,
           created_by: 'usr-demo-1',
           created_at: '2026-09-01T08:00:00Z',
+          status: 'upcoming',
+          ended_at: null,
         },
       ],
       association_events: [

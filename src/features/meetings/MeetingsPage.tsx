@@ -20,6 +20,7 @@ export function MeetingsPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [creating, setCreating] = useState(false)
   const [activeLiveMeeting, setActiveLiveMeeting] = useState<Meeting | null>(null)
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming')
 
   // form
   const [title, setTitle] = useState('')
@@ -76,6 +77,62 @@ export function MeetingsPage() {
     } catch (err) { console.error(err) } finally { setCreating(false) }
   }
 
+  const handleEndMeeting = async (meetingId: string, chatTranscript?: Array<{ sender: string, text: string, time: string }>) => {
+    try {
+      const endedAt = new Date().toISOString()
+      const { error } = await supabase.from('meetings')
+        .update({ status: 'ended', ended_at: endedAt })
+        .eq('id', meetingId)
+      
+      if (error) {
+        // Fallback for PGRST204 (Columns missing in remote schema cache)
+        if (error.code === 'PGRST204' || error.message?.includes('ended_at')) {
+          console.warn('History columns not provisioned on remote database, falling back to delete.', error)
+          const { error: delError } = await supabase.from('meetings').delete().eq('id', meetingId)
+          if (delError) throw delError
+        } else {
+          throw error
+        }
+      }
+
+      if (currentAssociation) {
+        // Try to get or create conversation
+        const { data: conv } = await supabase.from('conversations')
+          .select('*').eq('association_id', currentAssociation.id).maybeSingle()
+        let conversationId = conv?.id
+        if (!conversationId) {
+          const { data: created } = await supabase.from('conversations')
+            .insert({ association_id: currentAssociation.id }).select().single()
+          conversationId = created?.id
+        }
+
+        if (conversationId) {
+          let transcriptText = '_Aucune discussion par message n\'a eu lieu durant cette session._'
+          if (chatTranscript && chatTranscript.length > 0) {
+            transcriptText = chatTranscript
+              .map(m => `**[${m.time}] ${m.sender}** : ${m.text}`)
+              .join('\n')
+          }
+
+          const recapContent = `📣 **Récapitulatif de réunion : "${activeLiveMeeting?.title}"**\n\n*La session s'est terminée le ${formatDateTime(endedAt)}.*\n\n--- 💬 **Discussions de la session :** ---\n\n${transcriptText}`
+
+          await supabase.from('messages').insert({
+            conversation_id: conversationId,
+            content: recapContent,
+            sender_id: user?.id
+          })
+        }
+      }
+
+      setActiveLiveMeeting(null)
+      await loadMeetings()
+    } catch (err) {
+      console.error('Error ending meeting:', err)
+      // Safety fallback to close the screen even if DB has errors
+      setActiveLiveMeeting(null)
+    }
+  }
+
   if (!currentAssociation) {
     return <AppLayout><EmptyState icon={<Calendar size={48} />} title={t('dashboard.noAssociation')} /></AppLayout>
   }
@@ -125,48 +182,99 @@ export function MeetingsPage() {
           )}
         </div>
 
+        {/* Tab Selection */}
+        <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid var(--color-border)', paddingBottom: '4px' }}>
+          <button 
+            onClick={() => setActiveTab('upcoming')}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'upcoming' ? '2.5px solid var(--color-primary)' : '2.5px solid transparent',
+              color: activeTab === 'upcoming' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+              padding: '8px 12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontSize: '14px',
+              transition: 'all 0.2s'
+            }}
+          >
+            Réunions programmées
+          </button>
+          <button 
+            onClick={() => setActiveTab('history')}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'history' ? '2.5px solid var(--color-primary)' : '2.5px solid transparent',
+              color: activeTab === 'history' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+              padding: '8px 12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontSize: '14px',
+              transition: 'all 0.2s'
+            }}
+          >
+            Historique des sessions
+          </button>
+        </div>
+
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}><Spinner size={32} /></div>
-        ) : meetings.length === 0 ? (
-          <EmptyState icon={<Calendar size={48} />} title={t('meetings.noMeetings')} />
+        ) : meetings.filter(m => activeTab === 'upcoming' ? m.status !== 'ended' : m.status === 'ended').length === 0 ? (
+          <EmptyState 
+            icon={<Calendar size={48} />} 
+            title={activeTab === 'upcoming' ? t('meetings.noMeetings') : "Aucun historique de session disponible"} 
+          />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {meetings.map((mtg) => {
-              const isUpcoming = new Date(mtg.scheduled_at) > new Date()
-              const isLiveOrUpcoming = true // Let users test and join anytime!
-              return (
-                <Card key={mtg.id} className="animate-slide-up">
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                    <div style={{
-                      width: '44px', height: '44px', borderRadius: 'var(--radius-md)',
-                      background: isUpcoming ? 'var(--color-primary-light)' : 'var(--color-sand)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                    }}>
-                      <Video size={20} color="var(--color-primary)" />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ fontSize: '15px', color: 'var(--color-text)', fontWeight: 600 }}>{mtg.title}</h3>
-                        <Badge variant="success" size="sm">
-                          <Radio size={12} className="animate-pulse" />
-                          Direct In-App
-                        </Badge>
+            {meetings
+              .filter(m => activeTab === 'upcoming' ? m.status !== 'ended' : m.status === 'ended')
+              .map((mtg) => {
+                const isUpcoming = new Date(mtg.scheduled_at) > new Date()
+                const isEnded = mtg.status === 'ended'
+                return (
+                  <Card key={mtg.id} className="animate-slide-up">
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <div style={{
+                        width: '44px', height: '44px', borderRadius: 'var(--radius-md)',
+                        background: isEnded ? 'var(--color-bg-alt)' : (isUpcoming ? 'var(--color-primary-light)' : 'var(--color-sand)'),
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      }}>
+                        <Video size={20} color={isEnded ? 'var(--color-text-muted)' : 'var(--color-primary)'} />
                       </div>
-                      {mtg.description && <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>{mtg.description}</p>}
-                      <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Calendar size={12} /> {formatDateTime(mtg.scheduled_at)}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <h3 style={{ fontSize: '15px', color: 'var(--color-text)', fontWeight: 600 }}>{mtg.title}</h3>
+                          {isEnded ? (
+                            <Badge variant="default" size="sm">
+                              Terminée
+                            </Badge>
+                          ) : (
+                            <Badge variant="success" size="sm">
+                              <Radio size={12} className="animate-pulse" />
+                              Direct In-App
+                            </Badge>
+                          )}
+                        </div>
+                        {mtg.description && <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>{mtg.description}</p>}
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Calendar size={12} /> 
+                          {isEnded 
+                            ? `Terminée le : ${formatDateTime(mtg.ended_at || mtg.scheduled_at)}`
+                            : `Planifiée le : ${formatDateTime(mtg.scheduled_at)}`
+                          }
+                        </div>
+                        
+                        {!isEnded && (
+                          <Button 
+                            onClick={() => setActiveLiveMeeting(mtg)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '12px', padding: '6px 16px', background: 'var(--color-primary)', color: '#FFFFFF', borderRadius: 'var(--radius-sm)', fontSize: '13px', fontWeight: 500 }}
+                            aria-label={`Rejoindre la réunion en direct dans l'application : ${mtg.title}`}
+                          >
+                            <Video size={14} /> Rejoindre la réunion en direct (In-App)
+                          </Button>
+                        )}
                       </div>
-                      
-                      {isLiveOrUpcoming && (
-                        <Button 
-                          onClick={() => setActiveLiveMeeting(mtg)}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '12px', padding: '6px 16px', background: 'var(--color-primary)', color: '#FFFFFF', borderRadius: 'var(--radius-sm)', fontSize: '13px', fontWeight: 500 }}
-                          aria-label={`Rejoindre la réunion en direct dans l'application : ${mtg.title}`}
-                        >
-                          <Video size={14} /> Rejoindre la réunion en direct (In-App)
-                        </Button>
-                      )}
-                    </div>
                   </div>
                 </Card>
               )
@@ -195,6 +303,7 @@ export function MeetingsPage() {
         <InAppMeetingLive 
           meeting={activeLiveMeeting} 
           onLeave={() => setActiveLiveMeeting(null)} 
+          onEndMeeting={(transcript) => handleEndMeeting(activeLiveMeeting.id, transcript)}
         />
       )}
     </AppLayout>

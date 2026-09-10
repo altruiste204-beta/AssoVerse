@@ -207,8 +207,10 @@ CREATE TABLE IF NOT EXISTS meetings (
   description text,
   scheduled_at timestamptz NOT NULL,
   external_link text,
-  platform text CHECK (platform IN ('meet','zoom','whatsapp','other')),
+  platform text CHECK (platform IN ('meet','zoom','whatsapp','other','direct','audio')),
   created_by uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
+  status text NOT NULL DEFAULT 'upcoming' CHECK (status IN ('upcoming','ended')),
+  ended_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 

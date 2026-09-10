@@ -23,37 +23,82 @@ export function MessagingPage() {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const loadConversation = useCallback(async () => {
-    if (!currentAssociation) { setLoading(false); return }
-    const { data: existing } = await supabase.from('conversations')
-      .select('*').eq('association_id', currentAssociation.id).maybeSingle()
-    if (existing) { setConversation(existing as Conversation); return }
-    const { data: created } = await supabase.from('conversations')
-      .insert({ association_id: currentAssociation.id }).select().single()
-    if (created) setConversation(created as Conversation)
-  }, [currentAssociation])
-
   const loadMessages = useCallback(async (convId: string) => {
-    const { data, error } = await supabase.from('messages')
-      .select('*, sender:profiles!messages_sender_id_fkey(*)')
-      .eq('conversation_id', convId)
-      .order('created_at', { ascending: true })
-    if (error) { console.error(error); return }
-    setMessages((data || []) as (Message & { sender?: Profile })[])
-    setLoading(false)
+    try {
+      const { data, error } = await supabase.from('messages')
+        .select('*')
+        .eq('conversation_id', convId)
+        .order('created_at', { ascending: true })
+      
+      if (error) throw error
+
+      if (data && data.length > 0) {
+        // Fetch profiles of all unique senders
+        const senderIds = Array.from(new Set(data.map((m: Message) => m.sender_id)))
+        const { data: profiles, error: pError } = await supabase.from('profiles')
+          .select('*')
+          .in('id', senderIds)
+        
+        if (!pError && profiles) {
+          const profileMap = new Map<string, Profile>(profiles.map((p: Profile) => [p.id, p]))
+          const messagesWithSender = data.map((m: Message) => ({
+            ...m,
+            sender: profileMap.get(m.sender_id)
+          }))
+          setMessages(messagesWithSender)
+        } else {
+          setMessages(data)
+        }
+      } else {
+        setMessages([])
+      }
+    } catch (err) {
+      console.error('Error loading messages:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
-    if (!currentAssociation) { setLoading(false); return }
-    setLoading(true)
-    loadConversation().then(() => {
-      if (conversation) loadMessages(conversation.id)
-    })
-  }, [currentAssociation, loadConversation, loadMessages])
-
-  useEffect(() => {
-    if (conversation) loadMessages(conversation.id)
-  }, [conversation, loadMessages])
+    let active = true
+    async function init() {
+      if (!currentAssociation) {
+        if (active) setLoading(false)
+        return
+      }
+      if (active) setLoading(true)
+      
+      try {
+        const { data: existing } = await supabase.from('conversations')
+          .select('*')
+          .eq('association_id', currentAssociation.id)
+          .maybeSingle()
+        
+        let conv = existing
+        if (!conv) {
+          const { data: created } = await supabase.from('conversations')
+            .insert({ association_id: currentAssociation.id })
+            .select()
+            .single()
+          conv = created
+        }
+        
+        if (active && conv) {
+          setConversation(conv as Conversation)
+          await loadMessages(conv.id)
+        }
+      } catch (err) {
+        console.error('Error initializing messaging:', err)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    
+    init()
+    return () => {
+      active = false
+    }
+  }, [currentAssociation, loadMessages])
 
   // Realtime
   useEffect(() => {
@@ -83,32 +128,71 @@ export function MessagingPage() {
     if (!user || !conversation || !input.trim()) return
     const text = input.trim()
     setInput('')
-    await supabase.from('messages').insert({
-      conversation_id: conversation.id, sender_id: user.id, content: text,
-    })
+    try {
+      const { error } = await supabase.from('messages').insert({
+        conversation_id: conversation.id, sender_id: user.id, content: text,
+      })
+      if (error) throw error
+    } catch (err) {
+      console.error('Error sending message:', err)
+    } finally {
+      await loadMessages(conversation.id)
+    }
   }
 
   const handleEdit = async (msgId: string) => {
-    if (!editText.trim()) return
-    await supabase.from('messages').update({
-      content: editText, edited_at: new Date().toISOString(),
-    }).eq('id', msgId)
-    setEditingId(null); setEditText('')
+    if (!editText.trim() || !conversation) return
+    try {
+      const { error } = await supabase.from('messages').update({
+        content: editText, edited_at: new Date().toISOString(),
+      }).eq('id', msgId)
+      if (error) throw error
+    } catch (err) {
+      console.error('Error editing message:', err)
+    } finally {
+      setEditingId(null)
+      setEditText('')
+      await loadMessages(conversation.id)
+    }
   }
 
   const handleDeleteForMe = async (msgId: string) => {
-    await supabase.from('messages').update({ deleted_for_me: true }).eq('id', msgId)
-    setMenuOpenId(null)
+    if (!conversation) return
+    try {
+      const { error } = await supabase.from('messages').update({ deleted_for_me: true }).eq('id', msgId)
+      if (error) throw error
+    } catch (err) {
+      console.error('Error deleting message for me:', err)
+    } finally {
+      setMenuOpenId(null)
+      await loadMessages(conversation.id)
+    }
   }
 
   const handleDeleteForAll = async (msgId: string) => {
-    await supabase.from('messages').update({ deleted_for_all: true }).eq('id', msgId)
-    setMenuOpenId(null)
+    if (!conversation) return
+    try {
+      const { error } = await supabase.from('messages').update({ deleted_for_all: true }).eq('id', msgId)
+      if (error) throw error
+    } catch (err) {
+      console.error('Error deleting message for all:', err)
+    } finally {
+      setMenuOpenId(null)
+      await loadMessages(conversation.id)
+    }
   }
 
   const handlePin = async (msgId: string, pinned: boolean) => {
-    await supabase.from('messages').update({ pinned: !pinned }).eq('id', msgId)
-    setMenuOpenId(null)
+    if (!conversation) return
+    try {
+      const { error } = await supabase.from('messages').update({ pinned: !pinned }).eq('id', msgId)
+      if (error) throw error
+    } catch (err) {
+      console.error('Error pinning message:', err)
+    } finally {
+      setMenuOpenId(null)
+      await loadMessages(conversation.id)
+    }
   }
 
   if (!currentAssociation) {

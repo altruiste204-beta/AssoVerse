@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Scale, ShieldAlert, BadgeCheck, MessageSquare, Award, AlertTriangle, PhoneCall, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react'
+import { ArrowLeft, Scale, ShieldAlert, PhoneCall, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react'
 import { Button, Card } from '@/components/ui'
 
 export function CguPage() {
