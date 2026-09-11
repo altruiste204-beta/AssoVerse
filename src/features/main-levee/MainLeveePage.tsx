@@ -5,8 +5,8 @@ import { useAssociation } from '@/features/associations/association-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button, Card, Input, Select, Modal, Badge, ProgressBar, Spinner, EmptyState } from '@/components/ui'
 import { supabase } from '@/lib/supabase'
-import { formatXAF, formatDate, getProgressPercentage, daysUntil } from '@/lib/utils'
-import type { MainLevee, MainLeveeContribution } from '@/types/database'
+import { formatXAF, formatDate, daysUntil } from '@/lib/utils'
+import type { MainLevee } from '@/types/database'
 import { Plus, HandCoins, Users, Clock, TrendingUp } from 'lucide-react'
 
 export function MainLeveePage() {
@@ -101,7 +101,6 @@ export function MainLeveePage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {levees.map((ml) => {
-              const pct = getProgressPercentage(ml.collected_amount, ml.target_amount)
               const days = daysUntil(ml.deadline)
               const contributors = ml.contributions || []
               return (

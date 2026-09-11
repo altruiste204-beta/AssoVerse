@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Card, Input, Button, Badge } from '@/components/ui'
-import { getNdopPatternSvg, getEkangPatternSvg } from '@/components/ui/CameroonPattern'
+import { getNdopPatternSvg } from '@/components/ui/CameroonPattern'
 import { 
   Search, HelpCircle, ChevronDown, ChevronUp, Check, 
   ThumbsUp, ThumbsDown, Send, MessageSquare, ArrowLeft,
@@ -277,7 +277,7 @@ export function FaqPage() {
                               border: '1px solid',
                               borderColor: userVote === 'up' ? 'var(--color-success)' : 'var(--color-border)',
                               borderRadius: '4px', padding: '4px 8px', fontSize: '11px', fontWeight: 600,
-                              cursor: !!userVote ? 'default' : 'pointer',
+                              cursor: userVote ? 'default' : 'pointer',
                               color: userVote === 'up' ? 'var(--color-success)' : 'var(--color-text-secondary)'
                             }}
                           >
@@ -286,14 +286,14 @@ export function FaqPage() {
                           
                           <button
                             onClick={() => handleVote(faq.id, 'down')}
-                            disabled={!!userVote}
+                            disabled={Boolean(userVote)}
                             style={{
                               display: 'flex', alignItems: 'center', gap: '4px',
                               background: userVote === 'down' ? 'rgba(239, 68, 68, 0.1)' : '#FFFFFF',
                               border: '1px solid',
                               borderColor: userVote === 'down' ? 'var(--color-error)' : 'var(--color-border)',
                               borderRadius: '4px', padding: '4px 8px', fontSize: '11px', fontWeight: 600,
-                              cursor: !!userVote ? 'default' : 'pointer',
+                              cursor: userVote ? 'default' : 'pointer',
                               color: userVote === 'down' ? 'var(--color-error)' : 'var(--color-text-secondary)'
                             }}
                           >

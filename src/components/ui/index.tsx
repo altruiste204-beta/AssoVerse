@@ -456,4 +456,5 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
 }
 
 export * from './CameroonPattern'
+export * from './ErrorBoundary'
 

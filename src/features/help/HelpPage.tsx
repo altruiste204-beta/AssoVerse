@@ -110,7 +110,7 @@ const HELP_SECTIONS: HelpSection[] = [
     summary: 'Espace de communication sécurisé et instantané pour coordonner la vie de l\'association et envoyer des rappels automatiques.',
     details: [
       'Canaux de discussion dédiés : Groupes de discussion sécurisés pour chaque association afin de débattre des projets sans polluer vos conversations privées WhatsApp.',
-      'Relances Automatiques : Le bureau peut déclencher en un clic des alertes de retard de paiement envoyées par notification push et SMS aux membres.',
+      'Relances Automatiques : Le bureau peut déclencher en un clic des alertes de retard de paiement envoyées par rappels SMS et alertes aux membres.',
       'Notifications de Sécurité : Alertes immédiates en cas de connexion sur un nouvel appareil, de rechargement validé ou de demande de KYC approuvée.'
     ],
     tips: 'Astuce : Utilisez les canaux de messagerie d\'AssoMboa pour garder l\'historique des débats de l\'association séparé de vos discussions personnelles.'
