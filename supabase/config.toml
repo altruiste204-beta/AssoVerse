@@ -6,3 +6,6 @@ verify_jwt = false
 
 [functions.verify-kyc]
 verify_jwt = true
+
+[functions.verify-kyc-admin]
+verify_jwt = true

@@ -6,7 +6,6 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { Button, Card, Input, Modal, Badge } from '@/components/ui'
 import { supabase } from '@/lib/supabase'
 import { AlertTriangle, Trash2, Pause, RefreshCw } from 'lucide-react'
-import { jsPDF } from 'jspdf'
 import type { CassationType } from '@/types/database'
 
 export function CassationPage() {
@@ -47,6 +46,7 @@ export function CassationPage() {
           .select('id', { count: 'exact', head: true })
           .eq('association_id', currentAssociation.id)
 
+        const { jsPDF } = await import('jspdf')
         const doc = new jsPDF()
         doc.setFontSize(18)
         doc.text('AssoMboa — Rapport de Cassation (Anonymise)', 20, 30)

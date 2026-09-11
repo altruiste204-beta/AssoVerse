@@ -11,7 +11,7 @@ import type { Association } from '@/types/database'
 import { getEkangPatternSvg, getNdopPatternSvg } from '@/components/ui/CameroonPattern'
 import { Plus, Users, MapPin, Building2, UserPlus, FolderPlus, HelpCircle, ShieldAlert } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import * as JoyrideModule from 'react-joyride'
+import { Joyride } from 'react-joyride'
 
 const TourStyles = () => (
   <style>{`
@@ -108,7 +108,7 @@ export function AssociationsPage() {
   const [fabOpen, setFabOpen] = useState(false)
 
   // Cast Joyride as any to prevent strict compiler errors with props/types
-  const JoyrideComponent = ((JoyrideModule as any).default || (JoyrideModule as any).Joyride || JoyrideModule) as any
+  const JoyrideComponent = Joyride as any
 
   // Guided Tour (Onboarding) State
   const [runTour, setRunTour] = useState(false)

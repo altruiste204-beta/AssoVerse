@@ -5,10 +5,7 @@ import { AssociationProvider } from '@/features/associations/association-context
 import { ThemeProvider } from '@/features/dashboard/theme-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { LandingPage } from '@/features/auth/LandingPage'
-import { AuthPage } from '@/features/auth/AuthPage'
 import { UserWalletProvider } from '@/features/wallet/user-wallet-context'
-import { UserWalletModal } from '@/features/wallet/UserWalletModal'
 import { Spinner } from '@/components/ui'
 import { getNdopPatternSvg, getEkangPatternSvg } from '@/components/ui/CameroonPattern'
 import type { ReactNode } from 'react'
@@ -16,6 +13,9 @@ import type { ReactNode } from 'react'
 // Chargées à la demande : chaque écran devient son propre chunk JS,
 // téléchargé seulement quand l'utilisateur y navigue réellement.
 // Réduit fortement le poids initial pour la connectivité mobile camerounaise.
+const LandingPage = lazy(() => import('@/features/auth/LandingPage').then(m => ({ default: m.LandingPage })))
+const AuthPage = lazy(() => import('@/features/auth/AuthPage').then(m => ({ default: m.AuthPage })))
+const UserWalletModal = lazy(() => import('@/features/wallet/UserWalletModal').then(m => ({ default: m.UserWalletModal })))
 const KycPage = lazy(() => import('@/features/auth/KycPage').then(m => ({ default: m.KycPage })))
 const ProfilePage = lazy(() => import('@/features/auth/ProfilePage').then(m => ({ default: m.ProfilePage })))
 const DashboardPage = lazy(() => import('@/features/dashboard/DashboardPage').then(m => ({ default: m.DashboardPage })))

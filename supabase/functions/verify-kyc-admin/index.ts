@@ -36,20 +36,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Verify caller has administrative privileges (e.g. is 'proprio' of an association)
-    const { data: assignments, error: assignErr } = await supabase
-      .from("bureau_assignments")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("role", "proprio");
-
-    if (assignErr || !assignments || assignments.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "Forbidden: Only association owners (proprio) can verify KYC" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     const { target_user_id, status, rejection_reason } = await req.json();
 
     if (!target_user_id || !status) {
@@ -63,6 +49,37 @@ Deno.serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ error: "status must be verified or rejected" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify caller has administrative privileges (role 'proprio' in bureau_assignments)
+    const { data: assignments, error: assignErr } = await supabase
+      .from("bureau_assignments")
+      .select("association_id")
+      .eq("user_id", user.id)
+      .eq("role", "proprio");
+
+    if (assignErr || !assignments || assignments.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: Only association owners (proprio) can verify KYC" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify target_user_id is an active member of at least one association where caller is proprio
+    const ownedAssocIds = assignments.map((a: { association_id: string }) => a.association_id);
+    const { data: memberRecord, error: memberErr } = await supabase
+      .from("association_members")
+      .select("id")
+      .eq("user_id", target_user_id)
+      .eq("status", "active")
+      .in("association_id", ownedAssocIds)
+      .limit(1);
+
+    if (memberErr || !memberRecord || memberRecord.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: Target user is not an active member of any association where caller is proprio" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

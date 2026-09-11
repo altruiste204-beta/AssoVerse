@@ -8,7 +8,7 @@ import { getEkangPatternSvg, getNdopPatternSvg } from '@/components/ui/CameroonP
 import { supabase } from '@/lib/supabase'
 import { timeAgo } from '@/lib/utils'
 import type { Message, Conversation, Profile } from '@/types/database'
-import { Send, Pin, Trash2, Edit2, Check } from 'lucide-react'
+import { Send, Pin, Trash2, Edit2, Check, AlertCircle } from 'lucide-react'
 
 export function MessagingPage() {
   const { t } = useTranslation()
@@ -18,6 +18,7 @@ export function MessagingPage() {
   const [messages, setMessages] = useState<(Message & { sender?: Profile })[]>([])
   const [loading, setLoading] = useState(true)
   const [input, setInput] = useState('')
+  const [actionError, setActionError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
@@ -69,17 +70,28 @@ export function MessagingPage() {
       if (active) setLoading(true)
       
       try {
-        const { data: existing } = await supabase.from('conversations')
+        const { data: existing, error: existingErr } = await supabase.from('conversations')
           .select('*')
           .eq('association_id', currentAssociation.id)
           .maybeSingle()
+
+        if (existingErr) {
+          console.error('Error fetching conversation:', existingErr)
+        }
         
         let conv = existing
         if (!conv) {
-          const { data: created } = await supabase.from('conversations')
+          const { data: created, error: createErr } = await supabase.from('conversations')
             .insert({ association_id: currentAssociation.id })
             .select()
             .single()
+          if (createErr) {
+            console.error('Error creating conversation:', createErr)
+            if (active) {
+              setActionError(`Impossible d'initialiser la conversation de l'association : ${createErr.message || 'accès non autorisé'}`)
+            }
+            return
+          }
           conv = created
         }
         
@@ -87,8 +99,11 @@ export function MessagingPage() {
           setConversation(conv as Conversation)
           await loadMessages(conv.id)
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error initializing messaging:', err)
+        if (active) {
+          setActionError(`Erreur lors de l'accès aux conversations : ${err?.message || 'échec de communication'}`)
+        }
       } finally {
         if (active) setLoading(false)
       }
@@ -125,16 +140,28 @@ export function MessagingPage() {
   }, [messages])
 
   const handleSend = async () => {
-    if (!user || !conversation || !input.trim()) return
+    if (!user || !input.trim()) return
+    if (!conversation) {
+      setActionError("Impossible d'envoyer le message : la conversation de l'association n'est pas initialisée ou accessible.")
+      return
+    }
     const text = input.trim()
+    setActionError(null)
     setInput('')
     try {
       const { error } = await supabase.from('messages').insert({
         conversation_id: conversation.id, sender_id: user.id, content: text,
       })
-      if (error) throw error
-    } catch (err) {
+      if (error) {
+        setInput(text)
+        setActionError(`Erreur lors de l'envoi du message : ${error.message || 'accès refusé'}`)
+        throw error
+      }
+    } catch (err: any) {
       console.error('Error sending message:', err)
+      if (!actionError) {
+        setActionError(`Erreur lors de l'envoi du message : ${err?.message || 'Échec de transmission'}`)
+      }
     } finally {
       await loadMessages(conversation.id)
     }
@@ -239,6 +266,45 @@ export function MessagingPage() {
 
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <h1 style={{ fontSize: '22px', color: 'var(--color-text)' }}>{currentAssociation.name}</h1>
+
+        {actionError && (
+          <div
+            id="messaging-error-banner"
+            style={{
+              padding: '12px 16px',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(220, 38, 38, 0.08)',
+              border: '1px solid var(--color-error)',
+              color: 'var(--color-error)',
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertCircle size={16} />
+              <span>{actionError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActionError(null)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-error)',
+                cursor: 'pointer',
+                fontSize: '16px',
+                padding: '2px 6px',
+                borderRadius: '4px',
+              }}
+              title="Fermer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}><Spinner size={32} /></div>
